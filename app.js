@@ -184,6 +184,8 @@ function updateSun() {
         if (water && water.material) {
             water.material.envMap = scene.environment;
             water.material.needsUpdate = true;
+            // 强制渲染一帧以确保材质更新生效
+            renderer.render(scene, camera);
         }
     }
 }
@@ -264,6 +266,15 @@ function initGUI() {
     // 添加纹理尺寸控制
     waterFolder.add(parameters, 'textureWidth', 512, 4096, 512).name('纹理宽度');
     waterFolder.add(parameters, 'textureHeight', 512, 4096, 512).name('纹理高度');
+    
+    // 在 waterFolder 中添加 depthWrite 控制
+    waterFolder.add({ depthWrite: true }, 'depthWrite').name('深度写入').onChange(function(value) {
+        if (water && water.material) {
+            water.material.depthWrite = value;
+            water.material.needsUpdate = true; // 确保材质更新
+            renderer.render(scene, camera); // 强制渲染一帧
+        }
+    });
     
     waterFolder.open();
     
@@ -693,6 +704,8 @@ water = new THREE.Water(
         envMap: scene.environment // 添加环境贴图支持
     }
 );
+// 显式设置 depthWrite
+water.material.depthWrite = true;
 // 旋转水面使其水平放置
 water.rotation.x = -Math.PI / 2; // 旋转90度，使平面水平
 scene.add(water);
