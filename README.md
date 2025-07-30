@@ -249,3 +249,196 @@ water = new THREE.Water(
 
 - Three.js 团队提供的优秀 3D 库
 - 各种 Three.js 社区教程和示例
+
+## THREE.Water 分析补充
+
+### 关键参数
+- **`sunColor`**: 控制水面反射的高光颜色（默认 `0xffffff`）。
+- **`waterColor`**: 定义水面的基础颜色（默认 `0x7F7F7F`）。
+- **`distortionScale`**: 调整波纹扭曲强度（默认 `20.0`）。
+
+### 材质和着色器
+- **`ShaderMaterial`**: 使用自定义的 `mirrorShader` 实现水面效果。
+- **内置光源**: 通过 `UniformsLib['lights']` 集成 Three.js 的光照系统。
+
+### 渲染逻辑
+- **反射机制**: 使用 `WebGLRenderTarget` 捕获场景的反射贴图。
+
+### 调整建议
+- 隐藏水面：设置 `alpha: 0`。
+- 减少波纹：降低 `distortionScale` 值。
+
+## 内置物理材质与自定义着色器对比
+
+### 1. 内置物理材质的局限性
+- **反射与折射**：
+  - 内置材质支持环境贴图（`envMap`）实现反射，但无法直接模拟动态水面波纹（如扭曲、动态法线贴图）。
+  - 折射效果需要通过 `refractionRatio` 控制，但无法动态调整扭曲程度（如 `distortionScale`）。
+- **动态效果**：
+  - 内置材质的光照和反射是静态的，无法实时响应动态光源或几何体变化（如波纹随时间变化）。
+- **性能优化**：
+  - 内置材质可能包含不必要的计算（如金属度、粗糙度），而水面效果通常需要更轻量的着色器逻辑。
+
+### 2. 自定义着色器的优势
+- **动态波纹**：
+  - 通过 `time` 变量和法线贴图（`normalSampler`）实现动态波纹效果。
+  - 可精确控制扭曲强度（`distortionScale`）和波纹速度。
+- **混合效果**：
+  - 自定义着色器可以同时处理反射（`mirrorSampler`）和折射（`waterColor`），并动态混合两者。
+- **性能控制**：
+  - 仅计算必要的效果（如仅水面反射），避免内置材质的冗余计算。
+
+#### THREE.Water 核心代码示例
+```javascript
+water = new THREE.Water(
+    waterGeometry,
+    {
+        textureWidth: 2048,
+        textureHeight: 2048,
+        waterNormals: new THREE.TextureLoader().load('textures/waternormals.jpg'),
+        sunDirection: new THREE.Vector3(0, 1, 0),
+        sunColor: 0xffffff,
+        waterColor: 0x001e0f,
+        distortionScale: 3.7,
+        fog: scene.fog !== undefined
+    }
+);
+```
+
+### 3. 何时选择自定义着色器？
+- **需要动态效果**：如水面波纹、动态反射/折射。
+- **特殊视觉需求**：如非物理真实的艺术化效果（如卡通水面）。
+- **性能敏感场景**：需极致优化时（如移动端 WebGL 应用）。
+
+### 4. 内置物理材质的适用场景
+- **静态或简单动态效果**：如静态倒影、简单透明材质。
+- **物理真实感**：如金属、塑料等符合 PBR（基于物理渲染）的材质。
+- **快速开发**：无需编写着色器代码，直接通过参数调整。
+
+### 结论
+Three.js 内置物理材质无法完全替代自定义着色器，尤其是在需要**动态水面效果**的场景。`THREE.Water` 通过自定义着色器实现了内置材质无法做到的动态波纹、精确反射/折射控制和性能优化。
+
+## 动态调整扭曲程度（`distortionScale`）
+
+### 核心实现代码
+以下代码展示了如何动态调整 `distortionScale` 参数，实现水面波纹的实时扭曲效果：
+
+```javascript
+// 初始化 Water 对象
+const water = new THREE.Water(waterGeometry, {
+    textureWidth: 2048,
+    textureHeight: 2048,
+    waterNormals: new THREE.TextureLoader().load('textures/waternormals.jpg'),
+    distortionScale: 3.7, // 初始扭曲强度
+    // 其他参数...
+});
+
+// 动态调整 distortionScale
+function updateDistortionScale(newValue) {
+    water.material.uniforms.distortionScale.value = newValue;
+}
+
+// 示例：在动画循环中动态调整
+function animate() {
+    requestAnimationFrame(animate);
+    
+    // 模拟动态调整（例如根据用户输入或时间变化）
+    const time = Date.now() * 0.001;
+    const newScale = 3.0 + Math.sin(time) * 2.0; // 范围：1.0 ~ 5.0
+    updateDistortionScale(newScale);
+    
+    renderer.render(scene, camera);
+}
+```
+
+### 参数说明
+| 参数               | 作用                          | 典型值       |
+|--------------------|-----------------------------|-------------|
+| `distortionScale` | 控制波纹扭曲强度（越大越明显） | `1.0~10.0`  |
+
+### 应用场景
+- **交互式调整**：通过滑块或按钮让用户实时调整扭曲强度。
+- **动态效果**：结合时间变量实现自动变化的波纹效果。
+- **性能优化**：根据设备性能动态降低扭曲强度。
+
+## 动态水面波纹技术实现分析
+
+### 1. 动态法线贴图实现
+
+**核心机制**：
+- 使用法线贴图（`waterNormals`）定义基础波纹形状
+- 通过 `time` 变量动态偏移UV坐标，实现波纹移动效果
+- 使用 `distortionScale` 控制法线强度
+
+**着色器关键代码**：
+```glsl
+// 顶点着色器传递UV坐标
+varying vec2 vUv;
+void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}
+
+// 片段着色器动态采样法线贴图
+uniform sampler2D normalSampler;
+uniform float time;
+uniform float distortionScale;
+
+void main() {
+    vec2 uv = vUv + time * 0.05; // 动态偏移
+    vec3 normal = texture2D(normalSampler, uv).xyz * 2.0 - 1.0;
+    normal.xy *= distortionScale; // 应用扭曲
+    // ...后续反射/折射计算
+}
+```
+
+### 2. 实时光源响应
+
+**光照交互原理**：
+- 通过 `uniform` 变量实时接收光源参数：
+  - `sunDirection`：控制高光方向
+  - `sunColor`：控制高光强度
+- 在着色器中动态计算光照贡献：
+```glsl
+vec3 lightDir = normalize(sunDirection);
+float specular = pow(max(dot(normal, lightDir), 0.0), 128.0);
+vec3 specularColor = sunColor * specular;
+```
+
+### 3. 反射/折射动态混合
+
+**混合算法**：
+1. 分别计算反射颜色（从 `mirrorSampler` 采样）
+2. 计算折射颜色（基于 `waterColor` 和深度）
+3. 根据菲涅尔效应动态混合：
+```glsl
+float fresnel = pow(1.0 - dot(normal, viewDir), 5.0);
+vec3 finalColor = mix(refractionColor, reflectionColor, fresnel);
+```
+
+### 4. 性能优化建议
+- **分级渲染**：根据物体距离动态降低 `distortionScale`
+- **纹理压缩**：使用 `RGB_ETC` 格式压缩法线贴图
+- **实例化渲染**：对大面积水域使用实例化网格
+
+### 完整实现示例
+```javascript
+// 初始化Water对象（完整参数）
+const water = new THREE.Water(geometry, {
+    textureWidth: 1024,
+    textureHeight: 1024,
+    waterNormals: new THREE.TextureLoader().load('textures/waternormals.jpg'),
+    sunDirection: new THREE.Vector3(0, 1, 0),
+    sunColor: 0xffffff,
+    waterColor: 0x001e0f,
+    distortionScale: 3.7,
+    fog: scene.fog !== undefined
+});
+
+// 动画循环中动态更新
+function animate() {
+    requestAnimationFrame(animate);
+    water.material.uniforms.time.value += 0.01;
+    renderer.render(scene, camera);
+}
+```

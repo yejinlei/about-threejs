@@ -37,42 +37,42 @@ const parameters = {
     // 渲染参数
     antialias: true, // 控制是否启用抗锯齿
     useSkybox: false,
-    useBackground: true, // 控制是否使用背景色
+    useBackground: false, // 默认关闭背景色
     elevation: 2,
     azimuth: 180,
     useNormalMap: true, // 控制是否使用法向贴图
-    waterColor: 0x001e0f, // 水面颜色
-    distortionScale: 3.7, // 扭曲比例
-    sunColor: 0xffffff, // 太阳光颜色
+    waterColor: 0x000000, // 水面颜色设置为黑色
+    distortionScale: 0, // 扭曲比例设置为0
+    sunColor: 0x000000, // 太阳光颜色设置为黑色
     textureWidth: 2048, // 水面纹理宽度
     textureHeight: 2048, // 水面纹理高度
-    backgroundColor: 0x87ceeb, // 背景色（当不使用天空盒时）
+    backgroundColor: 0x000000, // 背景色设置为黑色
     widthSegments: 32, // 水面宽度分段数
     heightSegments: 32, // 水面高度分段数
     
     // 光源参数
-    useAmbientLight: true, // 是否使用环境光
+    useAmbientLight: false, // 默认关闭环境光
     ambientLightColor: 0xffffff, // 环境光颜色
-    ambientLightIntensity: 0.8, // 环境光强度
+    ambientLightIntensity: 0.0, // 环境光强度设置为0
     
-    useDirectionalLight: true, // 是否使用定向光
+    useDirectionalLight: false, // 默认关闭定向光
     directionalLightColor: 0xffffff, // 定向光颜色
-    directionalLightIntensity: 1.5, // 定向光强度
+    directionalLightIntensity: 0.0, // 定向光强度设置为0
     directionalLightPositionX: 100, // 定向光X位置
     directionalLightPositionY: 100, // 定向光Y位置
     directionalLightPositionZ: 50, // 定向光Z位置
-    directionalLightCastShadow: true, // 定向光是否投射阴影
+    directionalLightCastShadow: false, // 定向光不投射阴影
     
-    useHemisphereLight: true, // 是否使用半球光
+    useHemisphereLight: false, // 默认关闭半球光
     hemisphereLightSkyColor: 0xffffbb, // 半球光天空颜色
     hemisphereLightGroundColor: 0x080820, // 半球光地面颜色
-    hemisphereLightIntensity: 1.0 // 半球光强度
+    hemisphereLightIntensity: 0.0 // 半球光强度设置为0
 };
 
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000); // 增加远平面距离以显示更远的场景
 const renderer = new THREE.WebGLRenderer({ antialias: true }); // 启用抗锯齿
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setClearColor(parameters.backgroundColor, 1); // 设置背景色（当不使用天空盒时），不透明度为1
+renderer.setClearColor(0x000000, 0); // 设置背景色为黑色，不透明度为0
 renderer.setPixelRatio(window.devicePixelRatio); // 适应设备像素比
 //renderer.setAnimationLoop(animate); // 使用 setAnimationLoop 替代 requestAnimationFrame (WebXR 应用推荐)
 renderer.toneMapping = THREE.ACESFilmicToneMapping; // 设置色调映射，提高视觉质量
@@ -101,6 +101,8 @@ function initLights() {
             parameters.ambientLightIntensity
         );
         scene.add(ambientLight);
+    } else {
+        if (ambientLight) scene.remove(ambientLight);
     }
 
     // 创建定向光源模拟太阳光
@@ -118,6 +120,8 @@ function initLights() {
         directionalLight.shadow.mapSize.width = 1024; // 设置阴影贴图分辨率
         directionalLight.shadow.mapSize.height = 1024;
         scene.add(directionalLight);
+    } else {
+        if (directionalLight) scene.remove(directionalLight);
     }
 
     // 创建半球光以模拟环境反射光
@@ -128,6 +132,8 @@ function initLights() {
             parameters.hemisphereLightIntensity
         );
         scene.add(hemisphereLight);
+    } else {
+        if (hemisphereLight) scene.remove(hemisphereLight);
     }
 }
 
@@ -237,7 +243,7 @@ function initGUI() {
                         texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
                     }) : null,
                     sunDirection: new THREE.Vector3(0, 1, 0),
-                    sunColor: 0xffffff,
+                    sunColor: parameters.sunColor,
                     waterColor: parameters.waterColor,
                     distortionScale: value ? parameters.distortionScale : 0,
                     fog: scene.fog !== undefined,
@@ -253,6 +259,13 @@ function initGUI() {
     waterFolder.addColor(parameters, 'waterColor').name('水面颜色').onChange(function(value) {
         if (water && water.material) {
             water.material.uniforms['waterColor'].value.set(value);
+        }
+    });
+    
+    // 添加太阳光颜色控制
+    waterFolder.addColor(parameters, 'sunColor').name('太阳光颜色').onChange(function(value) {
+        if (water && water.material) {
+            water.material.uniforms['sunColor'].value.set(value);
         }
     });
     
@@ -312,34 +325,15 @@ function initGUI() {
                 }
             }
         } else {
-            // 不使用天空盒时，根据背景色启用设置决定是否应用背景色
-            if (parameters.useBackground) {
-                renderer.setClearColor(parameters.backgroundColor, 1); // 设置不透明度为1，确保完全覆盖
-            } else {
-                renderer.setClearColor(0x000000, 0); // 透明背景
-            }
+            // 不使用天空盒时，背景色设置为黑色
+            renderer.setClearColor(0x000000, 1);
             
-            // 清除环境贴图，但保留一个基本的环境贴图以确保水面可见
-            // 创建一个简单的环境贴图，即使不使用天空盒也能让水面有基本的反射效果
-            if (pmremGenerator) {
-                // 创建一个临时场景，包含一个简单的环境光
-                const tempScene = new THREE.Scene();
-                const tempLight = new THREE.AmbientLight(0xffffff, 1.0);
-                tempScene.add(tempLight);
-                
-                // 从临时场景生成环境贴图
-                scene.environment = pmremGenerator.fromScene(tempScene).texture;
-                
-                if (water && water.material) {
-                    water.material.envMap = scene.environment;
-                    water.material.needsUpdate = true;
-                }
-            }
+            // 清除环境贴图
+            scene.environment = null;
             
             // 如果天空盒存在，从场景中移除
             if (sky && scene.children.includes(sky)) {
                 scene.remove(sky);
-                // 不完全移除sky对象，以便再次启用时不需要重新创建
             }
             
             // 强制更新渲染器的清除状态
