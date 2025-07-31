@@ -78,7 +78,6 @@ document.body.appendChild(renderer.domElement); // 将渲染器的画布添加�
 
 // 添加轨道控制器，实现交互式相机控制
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
-// 调整相机位置以更好地观察游泳池
 camera.position.set(0, 100, 200);
 controls.update(); // 更新控制器
 
@@ -185,11 +184,11 @@ function initGUI() {
     const gui = new GUI();
     
     // 添加几何体文件夹
-    const geometryFolder = gui.addFolder('几何体');
+    const modelFolder = gui.addFolder('模型控制');
     
     // 添加泳池显示控制
     const showPool = { show: true };
-    geometryFolder.add(showPool, 'show').name('显示泳池').onChange(function(value) {
+    modelFolder.add(showPool, 'show').name('显示泳池').onChange(function(value) {
         // 控制泳池几何体的显示/隐藏逻辑
         console.log('泳池显示状态:', value);
         if (typeof poolEdge !== 'undefined' && poolEdge && typeof poolInner !== 'undefined' && poolInner) {
@@ -498,6 +497,22 @@ function initGUI() {
 
 // 初始化场景设置
 function initScene() {
+    // 加载 GLB 文件
+    const loader = new THREE.GLTFLoader();
+    const dracoLoader = new THREE.DRACOLoader();
+    dracoLoader.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/libs/draco/');
+    loader.setDRACOLoader(dracoLoader);
+    loader.load(
+        'models/一层.glb',
+        function (gltf) {
+            scene.add(gltf.scene);
+            console.log('GLB 文件加载成功');
+        },
+        undefined,
+        function (error) {
+            console.error('GLB 文件加载失败:', error);
+        }
+    );
     // 确保useSkybox和parameters.useSkybox保持一致
     useSkybox = parameters.useSkybox;
     
