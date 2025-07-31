@@ -563,38 +563,6 @@ initGUI();
 initScene();
 
 /**
- * 游泳池结构创建
- * 包括：
- * 1. 水面几何体
- * 2. 池边结构
- * 3. 池内结构（半透明）
- */
-// 定义游泳池尺寸
-const poolWidth = 100;
-const poolLength = 200;
-const poolDepth = 5;
-
-// 创建游泳池边缘（外框）
-const poolEdgeGeometry = new THREE.BoxGeometry(poolWidth + 10, poolDepth, poolLength + 10);
-const poolEdgeMaterial = new THREE.MeshStandardMaterial({ color: 0xcccccc });
-const poolEdge = new THREE.Mesh(poolEdgeGeometry, poolEdgeMaterial);
-poolEdge.position.y = -poolDepth/2; // 将池边放置在适当位置
-scene.add(poolEdge);
-
-// 创建游泳池内部（半透明蓝色）
-const poolInnerGeometry = new THREE.BoxGeometry(poolWidth, poolDepth, poolLength);
-const poolInnerMaterial = new THREE.MeshStandardMaterial({ 
-    color: 0x0088ff,
-    transparent: true,
-    opacity: 0.3, // 增加不透明度，使其在任何背景下都更加可见
-    emissive: 0x003366, // 添加自发光属性，使其在没有光照时也可见
-    emissiveIntensity: 0.2 // 控制自发光强度
-});
-const poolInner = new THREE.Mesh(poolInnerGeometry, poolInnerMaterial);
-poolInner.position.y = -poolDepth/2;
-scene.add(poolInner);
-
-/**
  * 动画循环函数
  * 负责：
  * 1. 更新水面动画
