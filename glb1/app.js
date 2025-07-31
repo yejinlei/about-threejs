@@ -186,6 +186,61 @@ function initGUI() {
     // 添加几何体文件夹
     const modelFolder = gui.addFolder('模型控制');
     
+    // 添加模型过滤功能
+    const filterOptions = {
+        pattern: '',  // 用于存储正则表达式模式
+        applyFilter: function() {
+            const glbParent = scene.children.find(child => child.name === 'GLB模型');
+            if (glbParent && glbParent.children.length > 0) {
+                const pattern = filterOptions.pattern.trim();
+                if (!pattern) {
+                    // 如果没有输入过滤条件，显示所有模型
+                    glbParent.children.forEach(child => {
+                        child.visible = true;
+                    });
+                } else {
+                    // 判断是否是排除模式（以!开头）
+                    const isExcludeMode = pattern.startsWith('!');
+                    const actualPattern = isExcludeMode ? pattern.substring(1) : pattern;
+                    
+                    try {
+                        const regex = new RegExp(actualPattern, 'i');  // 不区分大小写
+                        
+                        glbParent.children.forEach(child => {
+                            // 递归检查子模型名称
+                            const checkChildren = (obj) => {
+                                const nameMatches = regex.test(obj.name || '');
+                                obj.visible = isExcludeMode ? !nameMatches : nameMatches;
+                                
+                                // 递归处理子对象
+                                if (obj.children && obj.children.length > 0) {
+                                    obj.children.forEach(checkChildren);
+                                }
+                            };
+                            checkChildren(child);
+                        });
+                        
+                        console.log(`已${isExcludeMode ? '排除' : '筛选'}模型，模式: ${actualPattern}`);
+                    } catch (e) {
+                        console.error('正则表达式无效:', e);
+                        // 正则表达式无效时，显示所有模型
+                        glbParent.children.forEach(child => {
+                            child.visible = true;
+                        });
+                    }
+                }
+                // 强制触发重绘
+                controls.update();
+                renderer.render(scene, camera);
+                // 确保动画循环继续运行
+                animate();
+            }
+        }
+    };
+    
+    // 添加过滤输入框 - 使用onChange而不是onFinishChange，实现实时过滤
+    modelFolder.add(filterOptions, 'pattern').name('模型名称过滤').onChange(filterOptions.applyFilter);
+    
     // 添加泳池显示控制
     const showModels = { show: true };
     modelFolder.add(showModels, 'show').name('显示模型').onChange(function(value) {
@@ -203,6 +258,114 @@ function initGUI() {
             console.warn('未找到GLB模型');
         }
     });
+
+    // 添加平铺功能
+    const tileFunctions = {
+        tileXY: function() {
+            const glbParent = scene.children.find(child => child.name === 'GLB模型');
+            if (glbParent && glbParent.children.length > 0) {
+                console.log('找到GLB模型父节点及其子模型:', glbParent.children);
+                const spacing = 10; // 子模型之间的间距
+                let x = 0, y = 0;
+                
+                // 只处理可见的子模型
+                const visibleChildren = glbParent.children.filter(child => child.visible);
+                
+                visibleChildren.forEach((child, index) => {
+                    // 重置旋转和缩放，确保原点对齐
+                    child.rotation.set(0, 0, 0);
+                    child.scale.set(1, 1, 1);
+                    child.position.set(x, y, 0);
+                    x += spacing;
+                    if (x > 10000) { // 每行最多显示10个模型
+                        x = 0;
+                        y += spacing;
+                    }
+                });
+                renderer.render(scene, camera);
+            } else {
+                console.warn('未找到GLB模型父节点或子模型:', glbParent);
+            }
+        },
+        tileXZ: function() {
+            const glbParent = scene.children.find(child => child.name === 'GLB模型');
+            if (glbParent && glbParent.children.length > 0) {
+                console.log('找到GLB模型父节点及其子模型:', glbParent.children);
+                const spacing = 10; // 子模型之间的间距
+                let x = 0, z = 0;
+                
+                // 只处理可见的子模型
+                const visibleChildren = glbParent.children.filter(child => child.visible);
+                
+                visibleChildren.forEach((child, index) => {
+                    // 重置旋转和缩放，确保原点对齐
+                    child.rotation.set(0, 0, 0);
+                    child.scale.set(1, 1, 1);
+                    child.position.set(x, 0, z);
+                    x += spacing;
+                    if (x > 100) { // 每行最多显示10个模型
+                        x = 0;
+                        z += spacing;
+                    }
+                });
+                renderer.render(scene, camera);
+            } else {
+                console.warn('未找到GLB模型父节点或子模型:', glbParent);
+            }
+        },
+        tileYZ: function() {
+            const glbParent = scene.children.find(child => child.name === 'GLB模型');
+            if (glbParent && glbParent.children.length > 0) {
+                console.log('找到GLB模型父节点及其子模型:', glbParent.children);
+                const spacing = 10; // 子模型之间的间距
+                let y = 0, z = 0;
+                
+                // 只处理可见的子模型
+                const visibleChildren = glbParent.children.filter(child => child.visible);
+                
+                visibleChildren.forEach((child, index) => {
+                    // 重置旋转和缩放，确保原点对齐
+                    child.rotation.set(0, 0, 0);
+                    child.scale.set(1, 1, 1);
+                    child.position.set(0, y, z);
+                    y += spacing;
+                    if (y > 100) { // 每行最多显示10个模型
+                        y = 0;
+                        z += spacing;
+                    }
+                });
+                renderer.render(scene, camera);
+            } else {
+                console.warn('未找到GLB模型父节点或子模型:', glbParent);
+            }
+        },
+        reset: function() {
+            const glbParent = scene.children.find(child => child.name === 'GLB模型');
+            if (glbParent && glbParent.children.length > 0) {
+                console.log('恢复子模型初始状态:', glbParent.children);
+                
+                // 只处理可见的子模型
+                const visibleChildren = glbParent.children.filter(child => child.visible);
+                
+                visibleChildren.forEach((child) => {
+                    child.position.set(0, 0, 0);
+                    child.rotation.set(0, 0, 0);
+                    child.scale.set(1, 1, 1);
+                });
+                renderer.render(scene, camera);
+            } else {
+                console.warn('未找到GLB模型父节点或子模型:', glbParent);
+            }
+        }
+    };
+
+    // 添加平铺按钮
+    modelFolder.add(tileFunctions, 'tileXY').name('XY平铺');
+    modelFolder.add(tileFunctions, 'tileXZ').name('XZ平铺');
+    modelFolder.add(tileFunctions, 'tileYZ').name('YZ平铺');
+    
+    // 添加恢复按钮
+    modelFolder.add(tileFunctions, 'reset').name('恢复');
     
     // 添加渲染参数控制
     const renderFolder = gui.addFolder('渲染参数');
@@ -507,7 +670,8 @@ function initScene() {
     dracoLoader.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/libs/draco/');
     loader.setDRACOLoader(dracoLoader);
     loader.load(
-        'models/一层.glb',
+        //'models/戴珍珠耳环的黑人少女.glb',
+        'models/一层_opt.glb',
         function (gltf) {
             gltf.scene.name = 'GLB模型';
             scene.add(gltf.scene);
