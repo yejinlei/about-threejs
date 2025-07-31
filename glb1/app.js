@@ -348,9 +348,17 @@ function initGUI() {
                 const visibleChildren = glbParent.children.filter(child => child.visible);
                 
                 visibleChildren.forEach((child) => {
-                    child.position.set(0, 0, 0);
-                    child.rotation.set(0, 0, 0);
-                    child.scale.set(1, 1, 1);
+                    const initial = modelInitialPositions[child.uuid];
+                    if (initial) {
+                        child.position.copy(initial.position);
+                        child.rotation.copy(initial.rotation);
+                        child.scale.copy(initial.scale);
+                    } else {
+                        // 如果没有记录初始位置，则重置为默认值
+                        child.position.set(0, 0, 0);
+                        child.rotation.set(0, 0, 0);
+                        child.scale.set(1, 1, 1);
+                    }
                 });
                 renderer.render(scene, camera);
             } else {
@@ -662,6 +670,9 @@ function initGUI() {
     lightFolder.open();
 }
 
+// 存储模型初始位置的变量
+const modelInitialPositions = {};
+
 // 初始化场景设置
 function initScene() {
     // 加载 GLB 文件
@@ -675,6 +686,16 @@ function initScene() {
         function (gltf) {
             gltf.scene.name = 'GLB模型';
             scene.add(gltf.scene);
+            
+            // 记录所有子模型的初始位置
+            gltf.scene.children.forEach(child => {
+                modelInitialPositions[child.uuid] = {
+                    position: child.position.clone(),
+                    rotation: child.rotation.clone(),
+                    scale: child.scale.clone()
+                };
+            });
+            
             console.log('GLB 文件加载成功');
         },
         undefined,
