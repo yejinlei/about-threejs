@@ -187,16 +187,20 @@ function initGUI() {
     const modelFolder = gui.addFolder('模型控制');
     
     // 添加泳池显示控制
-    const showPool = { show: true };
-    modelFolder.add(showPool, 'show').name('显示泳池').onChange(function(value) {
-        // 控制泳池几何体的显示/隐藏逻辑
-        console.log('泳池显示状态:', value);
-        if (typeof poolEdge !== 'undefined' && poolEdge && typeof poolInner !== 'undefined' && poolInner) {
-            poolEdge.visible = value;
-            poolInner.visible = value;
+    const showModels = { show: true };
+    modelFolder.add(showModels, 'show').name('显示模型').onChange(function(value) {
+        // 控制模型的显示/隐藏逻辑
+        console.log('模型显示状态:', value);
+        const glbModels = scene.children.filter(child => child.name === 'GLB模型');
+        if (glbModels.length > 0) {
+            glbModels.forEach(model => {
+                if (model) model.visible = value;
+            });
             if (renderer && scene && camera) {
                 renderer.render(scene, camera); // 强制渲染一帧
             }
+        } else {
+            console.warn('未找到GLB模型');
         }
     });
     
@@ -505,6 +509,7 @@ function initScene() {
     loader.load(
         'models/一层.glb',
         function (gltf) {
+            gltf.scene.name = 'GLB模型';
             scene.add(gltf.scene);
             console.log('GLB 文件加载成功');
         },
