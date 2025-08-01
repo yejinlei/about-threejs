@@ -108,10 +108,10 @@ function createModelTree() {
     }
     
     // 创建新的模型树文件夹
-    window.modelTreeFolder = modelFolder.addFolder('模型拓扑树');
+    window.modelTreeFolder = modelFolder.addFolder(`${window.currentModelName}模型拓扑树`);
     console.log('已创建新的模型树文件夹');
     
-    const glbParent = scene.children.find(child => child.name === 'GLB模型');
+    const glbParent = scene.children.find(child => child.name === window.currentModelName);
     if (glbParent && glbParent.children.length > 0) {
         console.log('创建模型拓扑树，找到子模型数量:', glbParent.children.length);
         
@@ -151,8 +151,8 @@ function createModelTree() {
         // 打开拓扑树文件夹
         window.modelTreeFolder.open();
     } else {
-        console.warn('未找到GLB模型或子模型为空');
-        window.modelTreeFolder.add({ message: '未找到模型' }, 'message').name('状态').disable();
+        console.warn(`未找到${window.currentModelName}模型或子模型为空`);
+        window.modelTreeFolder.add({ message: `未找到${window.currentModelName}模型` }, 'message').name('状态').disable();
     }
 }
 
@@ -282,7 +282,7 @@ function initGUI() {
     // 添加全选/全不选按钮
     const selectionControls = {
         selectAll: function() {
-            const glbParent = scene.children.find(child => child.name === 'GLB模型');
+            const glbParent = scene.children.find(child => child.name === window.currentModelName);
             if (glbParent) {
                 const updateVisibility = (obj, visible) => {
                     obj.visible = visible;
@@ -300,7 +300,7 @@ function initGUI() {
             }
         },
         deselectAll: function() {
-            const glbParent = scene.children.find(child => child.name === 'GLB模型');
+            const glbParent = scene.children.find(child => child.name === window.currentModelName);
             if (glbParent) {
                 const updateVisibility = (obj, visible) => {
                     obj.visible = visible;
@@ -326,7 +326,7 @@ function initGUI() {
     const filterOptions = {
         pattern: '',  // 用于存储正则表达式模式
         applyFilter: function() {
-            const glbParent = scene.children.find(child => child.name === 'GLB模型');
+            const glbParent = scene.children.find(child => child.name === window.currentModelName);
             if (glbParent && glbParent.children.length > 0) {
                 const pattern = filterOptions.pattern.trim();
                 if (!pattern) {
@@ -399,7 +399,7 @@ function initGUI() {
     modelFolder.add(showModels, 'show').name('显示模型').onChange(function(value) {
         // 控制模型的显示/隐藏逻辑
         console.log('模型显示状态:', value);
-        const glbModels = scene.children.filter(child => child.name === 'GLB模型');
+        const glbModels = scene.children.filter(child => child.name === window.currentModelName);
         if (glbModels.length > 0) {
             glbModels.forEach(model => {
                 if (model) model.visible = value;
@@ -408,16 +408,16 @@ function initGUI() {
                 renderer.render(scene, camera); // 强制渲染一帧
             }
         } else {
-            console.warn('未找到GLB模型');
+            console.warn(`未找到${window.currentModelName}模型`);
         }
     });
 
     // 添加平铺功能
     const tileFunctions = {
         tileXY: function() {
-            const glbParent = scene.children.find(child => child.name === 'GLB模型');
+            const glbParent = scene.children.find(child => child.name === window.currentModelName);
             if (glbParent && glbParent.children.length > 0) {
-                console.log('找到GLB模型父节点及其子模型:', glbParent.children);
+                console.log(`找到${window.currentModelName}模型父节点及其子模型:`, glbParent.children);
                 const spacing = 10; // 子模型之间的间距
                 let x = 0, y = 0;
                 
@@ -437,13 +437,13 @@ function initGUI() {
                 });
                 renderer.render(scene, camera);
             } else {
-                console.warn('未找到GLB模型父节点或子模型:', glbParent);
+                console.warn(`未找到${window.currentModelName}模型父节点或子模型:`, glbParent);
             }
         },
         tileXZ: function() {
-            const glbParent = scene.children.find(child => child.name === 'GLB模型');
+            const glbParent = scene.children.find(child => child.name === window.currentModelName);
             if (glbParent && glbParent.children.length > 0) {
-                console.log('找到GLB模型父节点及其子模型:', glbParent.children);
+                console.log(`找到${window.currentModelName}模型父节点及其子模型:`, glbParent.children);
                 const spacing = 10; // 子模型之间的间距
                 let x = 0, z = 0;
                 
@@ -463,13 +463,13 @@ function initGUI() {
                 });
                 renderer.render(scene, camera);
             } else {
-                console.warn('未找到GLB模型父节点或子模型:', glbParent);
+                console.warn(`未找到${window.currentModelName}模型父节点或子模型:`, glbParent);
             }
         },
         tileYZ: function() {
-            const glbParent = scene.children.find(child => child.name === 'GLB模型');
+            const glbParent = scene.children.find(child => child.name === window.currentModelName);
             if (glbParent && glbParent.children.length > 0) {
-                console.log('找到GLB模型父节点及其子模型:', glbParent.children);
+                console.log(`找到${window.currentModelName}模型父节点及其子模型:`, glbParent.children);
                 const spacing = 10; // 子模型之间的间距
                 let y = 0, z = 0;
                 
@@ -489,11 +489,11 @@ function initGUI() {
                 });
                 renderer.render(scene, camera);
             } else {
-                console.warn('未找到GLB模型父节点或子模型:', glbParent);
+                console.warn(`未找到${window.currentModelName}模型父节点或子模型:`, glbParent);
             }
         },
         reset: function() {
-            const glbParent = scene.children.find(child => child.name === 'GLB模型');
+            const glbParent = scene.children.find(child => child.name === window.currentModelName);
             if (glbParent && glbParent.children.length > 0) {
                 console.log('恢复子模型初始状态:', glbParent.children);
                 
@@ -515,7 +515,7 @@ function initGUI() {
                 });
                 renderer.render(scene, camera);
             } else {
-                console.warn('未找到GLB模型父节点或子模型:', glbParent);
+                console.warn(`未找到${window.currentModelName}模型父节点或子模型:`, glbParent);
             }
         }
     };
@@ -833,11 +833,20 @@ function initScene() {
     const dracoLoader = new THREE.DRACOLoader();
     dracoLoader.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/libs/draco/');
     loader.setDRACOLoader(dracoLoader);
+    // 获取模型文件路径
+    const modelPath = 'models/戴珍珠耳环的黑人少女.glb';
+    // 从路径中提取文件名（不含扩展名）
+    const modelName = modelPath.split('/').pop().replace('.glb', '');
+    
+    // 将模型名称存储为全局变量，以便其他函数使用
+    window.currentModelName = modelName;
+    
     loader.load(
-        'models/戴珍珠耳环的黑人少女.glb',
+        modelPath,
         //'models/一层_opt.glb',
         function (gltf) {
-            gltf.scene.name = 'GLB模型';
+            console.log('原始模型名称:', gltf.scene.name);
+            gltf.scene.name = modelName;
             scene.add(gltf.scene);
             
             // 记录所有子模型的初始位置
