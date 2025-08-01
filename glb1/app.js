@@ -29,6 +29,7 @@ let envMap = null; // 环境贴图
 let ambientLight = null; // 环境光
 let directionalLight = null; // 定向光
 let hemisphereLight = null; // 半球光
+let modelFolder = null; // 模型控制文件夹
 
 // GUI参数
 const parameters = {
@@ -80,6 +81,80 @@ document.body.appendChild(renderer.domElement); // 将渲染器的画布添加�
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
 camera.position.set(0, 100, 200);
 controls.update(); // 更新控制器
+
+// 全局模型可见性状态对象
+const modelVisibility = {};
+
+// 创建模型拓扑树
+function createModelTree() {
+    console.log('开始创建模型树...');
+    
+    // 销毁旧的模型树文件夹
+    if (window.modelTreeFolder) {
+        try {
+            // 使用 GUI 的 remove 方法移除文件夹
+            modelFolder.children.forEach((child, index) => {
+                if (child === window.modelTreeFolder) {
+                    modelFolder.children.splice(index, 1);
+                    console.log('已从父文件夹中移除旧的模型树文件夹');
+                }
+            });
+            
+            window.modelTreeFolder.destroy();
+            console.log('已销毁旧的模型树文件夹');
+        } catch (e) {
+            console.warn('销毁模型树文件夹时出错:', e);
+        }
+    }
+    
+    // 创建新的模型树文件夹
+    window.modelTreeFolder = modelFolder.addFolder('模型拓扑树');
+    console.log('已创建新的模型树文件夹');
+    
+    const glbParent = scene.children.find(child => child.name === 'GLB模型');
+    if (glbParent && glbParent.children.length > 0) {
+        console.log('创建模型拓扑树，找到子模型数量:', glbParent.children.length);
+        
+        // 递归创建模型树
+        function addModelToTree(obj, prefix = '') {
+            // 为每个模型创建一个可见性控制
+            const objName = obj.name || `未命名模型_${obj.uuid.substring(0, 8)}`;
+            const displayName = prefix + objName;
+            
+            // 初始化可见性状态（默认为可见）
+            if (modelVisibility[obj.uuid] === undefined) {
+                modelVisibility[obj.uuid] = true;
+            }
+            
+            // 添加勾选框控制模型可见性
+            window.modelTreeFolder.add(modelVisibility, obj.uuid)
+                .name(displayName)
+                .setValue(obj.visible)
+                .onChange(function(visible) {
+                    obj.visible = visible;
+                    renderer.render(scene, camera);
+                });
+            
+            // 递归处理子对象
+            if (obj.children && obj.children.length > 0) {
+                obj.children.forEach(child => {
+                    addModelToTree(child, prefix + '  ');
+                });
+            }
+        }
+        
+        // 为每个顶级子模型创建树节点
+        glbParent.children.forEach(child => {
+            addModelToTree(child);
+        });
+        
+        // 打开拓扑树文件夹
+        window.modelTreeFolder.open();
+    } else {
+        console.warn('未找到GLB模型或子模型为空');
+        window.modelTreeFolder.add({ message: '未找到模型' }, 'message').name('状态').disable();
+    }
+}
 
 /**
  * 光照系统设置
@@ -184,7 +259,7 @@ function initGUI() {
     const gui = new GUI();
     
     // 添加几何体文件夹
-    const modelFolder = gui.addFolder('模型控制');
+    modelFolder = gui.addFolder('模型控制');
     
     // 添加模型拓扑树功能
     let modelTreeFolder = modelFolder.addFolder('模型拓扑树');
@@ -192,78 +267,8 @@ function initGUI() {
     window.modelTreeFolder = modelTreeFolder;
     
     // 存储模型可见性状态的对象
-    const modelVisibility = {};
-    
-    // 创建模型拓扑树
-    function createModelTree() {
-        console.log('开始创建模型树...');
-        
-        // 销毁旧的模型树文件夹
-        if (window.modelTreeFolder) {
-            try {
-                // 使用 GUI 的 remove 方法移除文件夹
-                modelFolder.children.forEach((child, index) => {
-                    if (child === window.modelTreeFolder) {
-                        modelFolder.children.splice(index, 1);
-                        console.log('已从父文件夹中移除旧的模型树文件夹');
-                    }
-                });
-                
-                window.modelTreeFolder.destroy();
-                console.log('已销毁旧的模型树文件夹');
-            } catch (e) {
-                console.warn('销毁模型树文件夹时出错:', e);
-            }
-        }
-        
-        // 创建新的模型树文件夹
-        window.modelTreeFolder = modelFolder.addFolder('模型拓扑树');
-        console.log('已创建新的模型树文件夹');
-        
-        const glbParent = scene.children.find(child => child.name === 'GLB模型');
-        if (glbParent && glbParent.children.length > 0) {
-            console.log('创建模型拓扑树，找到子模型数量:', glbParent.children.length);
-            
-            // 递归创建模型树
-            function addModelToTree(obj, prefix = '') {
-                // 为每个模型创建一个可见性控制
-                const objName = obj.name || `未命名模型_${obj.uuid.substring(0, 8)}`;
-                const displayName = prefix + objName;
-                
-                // 初始化可见性状态（默认为可见）
-                if (modelVisibility[obj.uuid] === undefined) {
-                    modelVisibility[obj.uuid] = true;
-                }
-                
-                // 添加勾选框控制模型可见性
-                window.modelTreeFolder.add(modelVisibility, obj.uuid)
-                    .name(displayName)
-                    .setValue(obj.visible)
-                    .onChange(function(visible) {
-                        obj.visible = visible;
-                        renderer.render(scene, camera);
-                    });
-                
-                // 递归处理子对象
-                if (obj.children && obj.children.length > 0) {
-                    obj.children.forEach(child => {
-                        addModelToTree(child, prefix + '  ');
-                    });
-                }
-            }
-            
-            // 为每个顶级子模型创建树节点
-            glbParent.children.forEach(child => {
-                addModelToTree(child);
-            });
-            
-            // 打开拓扑树文件夹
-            window.modelTreeFolder.open();
-        } else {
-            console.warn('未找到GLB模型或子模型为空');
-            window.modelTreeFolder.add({ message: '未找到模型' }, 'message').name('状态').disable();
-        }
-    }
+
+
     
     // 添加刷新拓扑树按钮
     modelFolder.add({ 
