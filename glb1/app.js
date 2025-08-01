@@ -186,6 +186,137 @@ function initGUI() {
     // 添加几何体文件夹
     const modelFolder = gui.addFolder('模型控制');
     
+    // 添加模型拓扑树功能
+    let modelTreeFolder = modelFolder.addFolder('模型拓扑树');
+    // 将模型树文件夹添加到全局作用域，以便在函数间共享
+    window.modelTreeFolder = modelTreeFolder;
+    
+    // 存储模型可见性状态的对象
+    const modelVisibility = {};
+    
+    // 创建模型拓扑树
+    function createModelTree() {
+        console.log('开始创建模型树...');
+        
+        // 销毁旧的模型树文件夹
+        if (window.modelTreeFolder) {
+            try {
+                // 使用 GUI 的 remove 方法移除文件夹
+                modelFolder.children.forEach((child, index) => {
+                    if (child === window.modelTreeFolder) {
+                        modelFolder.children.splice(index, 1);
+                        console.log('已从父文件夹中移除旧的模型树文件夹');
+                    }
+                });
+                
+                window.modelTreeFolder.destroy();
+                console.log('已销毁旧的模型树文件夹');
+            } catch (e) {
+                console.warn('销毁模型树文件夹时出错:', e);
+            }
+        }
+        
+        // 创建新的模型树文件夹
+        window.modelTreeFolder = modelFolder.addFolder('模型拓扑树');
+        console.log('已创建新的模型树文件夹');
+        
+        const glbParent = scene.children.find(child => child.name === 'GLB模型');
+        if (glbParent && glbParent.children.length > 0) {
+            console.log('创建模型拓扑树，找到子模型数量:', glbParent.children.length);
+            
+            // 递归创建模型树
+            function addModelToTree(obj, prefix = '') {
+                // 为每个模型创建一个可见性控制
+                const objName = obj.name || `未命名模型_${obj.uuid.substring(0, 8)}`;
+                const displayName = prefix + objName;
+                
+                // 初始化可见性状态（默认为可见）
+                if (modelVisibility[obj.uuid] === undefined) {
+                    modelVisibility[obj.uuid] = true;
+                }
+                
+                // 添加勾选框控制模型可见性
+                window.modelTreeFolder.add(modelVisibility, obj.uuid)
+                    .name(displayName)
+                    .setValue(obj.visible)
+                    .onChange(function(visible) {
+                        obj.visible = visible;
+                        renderer.render(scene, camera);
+                    });
+                
+                // 递归处理子对象
+                if (obj.children && obj.children.length > 0) {
+                    obj.children.forEach(child => {
+                        addModelToTree(child, prefix + '  ');
+                    });
+                }
+            }
+            
+            // 为每个顶级子模型创建树节点
+            glbParent.children.forEach(child => {
+                addModelToTree(child);
+            });
+            
+            // 打开拓扑树文件夹
+            window.modelTreeFolder.open();
+        } else {
+            console.warn('未找到GLB模型或子模型为空');
+            window.modelTreeFolder.add({ message: '未找到模型' }, 'message').name('状态').disable();
+        }
+    }
+    
+    // 添加刷新拓扑树按钮
+    modelFolder.add({ 
+        refreshTree: function() {
+            console.log('刷新模型树...');
+            createModelTree();
+            console.log('模型树刷新完成');
+        } 
+    }, 'refreshTree').name('刷新模型树');
+    
+    // 添加全选/全不选按钮
+    const selectionControls = {
+        selectAll: function() {
+            const glbParent = scene.children.find(child => child.name === 'GLB模型');
+            if (glbParent) {
+                const updateVisibility = (obj, visible) => {
+                    obj.visible = visible;
+                    if (modelVisibility[obj.uuid] !== undefined) {
+                        modelVisibility[obj.uuid] = visible;
+                    }
+                    if (obj.children && obj.children.length > 0) {
+                        obj.children.forEach(child => updateVisibility(child, visible));
+                    }
+                };
+                
+                glbParent.children.forEach(child => updateVisibility(child, true));
+                createModelTree(); // 刷新树以更新UI状态
+                renderer.render(scene, camera);
+            }
+        },
+        deselectAll: function() {
+            const glbParent = scene.children.find(child => child.name === 'GLB模型');
+            if (glbParent) {
+                const updateVisibility = (obj, visible) => {
+                    obj.visible = visible;
+                    if (modelVisibility[obj.uuid] !== undefined) {
+                        modelVisibility[obj.uuid] = visible;
+                    }
+                    if (obj.children && obj.children.length > 0) {
+                        obj.children.forEach(child => updateVisibility(child, visible));
+                    }
+                };
+                
+                glbParent.children.forEach(child => updateVisibility(child, false));
+                createModelTree(); // 刷新树以更新UI状态
+                renderer.render(scene, camera);
+            }
+        }
+    };
+    
+    modelFolder.add(selectionControls, 'selectAll').name('全选');
+    modelFolder.add(selectionControls, 'deselectAll').name('全不选');
+    
     // 添加模型过滤功能
     const filterOptions = {
         pattern: '',  // 用于存储正则表达式模式
@@ -197,6 +328,10 @@ function initGUI() {
                     // 如果没有输入过滤条件，显示所有模型
                     glbParent.children.forEach(child => {
                         child.visible = true;
+                        // 更新可见性状态
+                        if (modelVisibility[child.uuid] !== undefined) {
+                            modelVisibility[child.uuid] = true;
+                        }
                     });
                 } else {
                     // 判断是否是排除模式（以!开头）
@@ -210,7 +345,13 @@ function initGUI() {
                             // 递归检查子模型名称
                             const checkChildren = (obj) => {
                                 const nameMatches = regex.test(obj.name || '');
-                                obj.visible = isExcludeMode ? !nameMatches : nameMatches;
+                                const newVisibility = isExcludeMode ? !nameMatches : nameMatches;
+                                obj.visible = newVisibility;
+                                
+                                // 更新可见性状态
+                                if (modelVisibility[obj.uuid] !== undefined) {
+                                    modelVisibility[obj.uuid] = newVisibility;
+                                }
                                 
                                 // 递归处理子对象
                                 if (obj.children && obj.children.length > 0) {
@@ -226,9 +367,16 @@ function initGUI() {
                         // 正则表达式无效时，显示所有模型
                         glbParent.children.forEach(child => {
                             child.visible = true;
+                            // 更新可见性状态
+                            if (modelVisibility[child.uuid] !== undefined) {
+                                modelVisibility[child.uuid] = true;
+                            }
                         });
                     }
                 }
+                // 刷新拓扑树以更新UI状态
+                createModelTree();
+                
                 // 强制触发重绘
                 controls.update();
                 renderer.render(scene, camera);
@@ -241,7 +389,7 @@ function initGUI() {
     // 添加过滤输入框 - 使用onChange而不是onFinishChange，实现实时过滤
     modelFolder.add(filterOptions, 'pattern').name('模型名称过滤').onChange(filterOptions.applyFilter);
     
-    // 添加泳池显示控制
+    // 添加模型显示控制
     const showModels = { show: true };
     modelFolder.add(showModels, 'show').name('显示模型').onChange(function(value) {
         // 控制模型的显示/隐藏逻辑
@@ -681,8 +829,8 @@ function initScene() {
     dracoLoader.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/libs/draco/');
     loader.setDRACOLoader(dracoLoader);
     loader.load(
-        //'models/戴珍珠耳环的黑人少女.glb',
-        'models/一层_opt.glb',
+        'models/戴珍珠耳环的黑人少女.glb',
+        //'models/一层_opt.glb',
         function (gltf) {
             gltf.scene.name = 'GLB模型';
             scene.add(gltf.scene);
@@ -697,6 +845,8 @@ function initScene() {
             });
             
             console.log('GLB 文件加载成功');
+            // 在模型加载成功后创建模型树
+            createModelTree();
         },
         undefined,
         function (error) {
