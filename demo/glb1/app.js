@@ -49,22 +49,22 @@ const parameters = {
     heightSegments: 32, // 水面高度分段数
     
     // 光源参数
-    useAmbientLight: false, // 默认关闭环境光
+    useAmbientLight: true, // 启用环境光
     ambientLightColor: 0xffffff, // 环境光颜色
-    ambientLightIntensity: 0.0, // 环境光强度设置为0
+    ambientLightIntensity: 0.5, // 环境光强度
     
-    useDirectionalLight: false, // 默认关闭定向光
+    useDirectionalLight: true, // 启用定向光
     directionalLightColor: 0xffffff, // 定向光颜色
-    directionalLightIntensity: 0.0, // 定向光强度设置为0
+    directionalLightIntensity: 1.0, // 定向光强度
     directionalLightPositionX: 100, // 定向光X位置
     directionalLightPositionY: 100, // 定向光Y位置
     directionalLightPositionZ: 50, // 定向光Z位置
-    directionalLightCastShadow: false, // 定向光不投射阴影
+    directionalLightCastShadow: true, // 定向光投射阴影
     
-    useHemisphereLight: false, // 默认关闭半球光
+    useHemisphereLight: true, // 启用半球光
     hemisphereLightSkyColor: 0xffffbb, // 半球光天空颜色
     hemisphereLightGroundColor: 0x080820, // 半球光地面颜色
-    hemisphereLightIntensity: 0.0 // 半球光强度设置为0
+    hemisphereLightIntensity: 0.6 // 半球光强度
 };
 
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000); // 增加远平面距离以显示更远的场景
@@ -112,8 +112,12 @@ function createModelTree() {
     console.log('已创建新的模型树文件夹');
     
     const glbParent = scene.children.find(child => child.name === window.currentModelName);
-    if (glbParent && glbParent.children.length > 0) {
-        console.log('创建模型拓扑树，找到子模型数量:', glbParent.children.length);
+    if (glbParent) {
+        // 检查是否有子模型
+        const hasChildren = (glbParent.children && glbParent.children.length > 0) || 
+                          (glbParent.userData && glbParent.userData.children && glbParent.userData.children.length > 0);
+        console.log('创建模型拓扑树，找到子模型数量:', hasChildren ? 
+            (glbParent.children ? glbParent.children.length : glbParent.userData.children.length) : 0);
         
         // 递归创建模型树
         function addModelToTree(obj, prefix = '') {
@@ -131,22 +135,48 @@ function createModelTree() {
                 .name(displayName)
                 .setValue(obj.visible)
                 .onChange(function(visible) {
-                    obj.visible = visible;
+                    const updateVisibility = (obj, visible) => {
+                        obj.visible = visible;
+                        if (obj.children && obj.children.length > 0) {
+                            obj.children.forEach(child => updateVisibility(child, visible));
+                        }
+                    };
+                    updateVisibility(obj, visible);
                     renderer.render(scene, camera);
                 });
             
             // 递归处理子对象
-            if (obj.children && obj.children.length > 0) {
-                obj.children.forEach(child => {
-                    addModelToTree(child, prefix + '  ');
+            const children = obj.children || (obj.userData && obj.userData.children);
+            if (children && children.length > 0) {
+                children.forEach(child => {
+                    // 检查是否是集合(Collection)
+                    if (child.isGroup || child.type === 'Group' || (child.userData && child.userData.isCollection)) {
+                        // 为集合创建单独的文件夹
+                        const collectionFolder = window.modelTreeFolder.addFolder(prefix + child.name || `集合_${child.uuid.substring(0, 8)}`);
+                        collectionFolder.open();
+                        
+                        // 递归处理集合中的子对象
+                        const collectionChildren = child.children || (child.userData && child.userData.children);
+                        if (collectionChildren && collectionChildren.length > 0) {
+                            collectionChildren.forEach(collectionChild => {
+                                addModelToTree(collectionChild, prefix + '  ');
+                            });
+                        }
+                    } else {
+                        // 普通模型对象
+                        addModelToTree(child, prefix + '  ');
+                    }
                 });
             }
         }
         
         // 为每个顶级子模型创建树节点
-        glbParent.children.forEach(child => {
-            addModelToTree(child);
-        });
+        if (hasChildren) {
+            const children = glbParent.children || (glbParent.userData && glbParent.userData.children);
+            children.forEach(child => {
+                addModelToTree(child);
+            });
+        }
         
         // 打开拓扑树文件夹
         window.modelTreeFolder.open();
@@ -831,10 +861,11 @@ function initScene() {
     // 加载 GLB 文件
     const loader = new THREE.GLTFLoader();
     const dracoLoader = new THREE.DRACOLoader();
-    dracoLoader.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/libs/draco/');
+    dracoLoader.setDecoderPath('https://gcore.jsdelivr.net/npm/three@0.132.2/examples/js/libs/draco/');
     loader.setDRACOLoader(dracoLoader);
     // 获取模型文件路径
-    const modelPath = 'models/戴珍珠耳环的黑人少女.glb';
+    //const modelPath = 'models/戴珍珠耳环的黑人少女.glb';
+    const modelPath = 'models/new一层_opt.glb';
     // 从路径中提取文件名（不含扩展名）
     const modelName = modelPath.split('/').pop().replace('.glb', '');
     
