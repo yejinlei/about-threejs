@@ -104,9 +104,14 @@ function createModelTrees() {
     
     // 清理之前创建的模型树文件夹
     if (window.modelTreeFolders && window.modelTreeFolders.length > 0) {
+        const gui = modelFolder.__parent;
         window.modelTreeFolders.forEach(folder => {
-            if (folder && folder.parent) {
-                folder.parent.removeFolder(folder);
+            try {
+                if (folder && gui && typeof gui.removeFolder === 'function') {
+                    gui.removeFolder(folder);
+                }
+            } catch (e) {
+                console.warn('清理模型树文件夹时出错:', e);
             }
         });
     }
@@ -120,7 +125,7 @@ function createModelTrees() {
     
     // 为模型拓扑树添加显示/隐藏控制
     mainModelTreeFolder.add({visible: true}, 'visible')
-        .name('场景集合')
+        .name('')
         .onChange(function(value) {
             const mainGroup = scene.children.find(child => child.name === 'MainGLBGroup');
             if (mainGroup) {
@@ -139,7 +144,7 @@ function createModelTrees() {
         
         // 添加GLB模型整体显示/隐藏控制
         modelTreeFolder.add({visible: true}, 'visible')
-            .name('显示模型')
+            .name('')
             .onChange(function(value) {
                 const mainGroup = scene.children.find(child => child.name === 'MainGLBGroup');
                 if (mainGroup) {
@@ -167,25 +172,80 @@ const glbParent = mainGroup ? mainGroup.children.find(child => child.name === mo
                 const objName = obj.name || `未命名模型_${obj.uuid.substring(0, 8)}`;
                 const displayName = prefix + objName;
                 
-                // 初始化可见性状态（默认为可见）
+                // 初始化可见性状态
                 if (modelVisibility[obj.uuid] === undefined) {
-                    modelVisibility[obj.uuid] = true;
+                    modelVisibility[obj.uuid] = obj.visible !== false;
                 }
                 
-                // 添加勾选框控制模型可见性
-                folder.add(modelVisibility, obj.uuid)
-                    .name(displayName)
-                    .setValue(obj.visible)
-                    .onChange(function(visible) {
-                        const updateVisibility = (obj, visible) => {
-                            obj.visible = visible;
-                            if (obj.children && obj.children.length > 0) {
-                                obj.children.forEach(child => updateVisibility(child, visible));
-                            }
-                        };
-                        updateVisibility(obj, visible);
-                        renderer.render(scene, camera);
+                // 确保初始状态同步
+                obj.visible = modelVisibility[obj.uuid];
+                
+                // 创建全局控制器存储
+                if (!window.modelTreeControllers) window.modelTreeControllers = {};
+                
+                // 同步函数（递归处理子对象）
+                // 模型状态更新（不触发UI）
+                const updateModelState = (obj, visible) => {
+                    obj.visible = visible;
+                    modelVisibility[obj.uuid] = visible;
+                    
+                    // 递归更新子对象状态
+                    if (obj.children && obj.children.length > 0) {
+                        obj.children.forEach(child => {
+                            updateModelState(child, visible);
+                        });
+                    }
+                };
+                
+                // UI更新（不触发模型状态变更）
+                const updateUIState = (obj, visible) => {
+                    if (window.modelTreeControllers[obj.uuid]) {
+                        const controller = window.modelTreeControllers[obj.uuid];
+                        controller.__isUpdating = true;
+                        controller.setValue(visible);
+                        controller.updateDisplay();
+                        controller.__isUpdating = false;
+                    }
+                };
+                
+                // 完整同步流程
+                const syncTreeVisibility = (obj, visible) => {
+                    // 先更新所有模型状态
+                    updateModelState(obj, visible);
+                    
+                    // 然后批量更新UI
+                    obj.traverse(child => {
+                        if (child.isMesh || child.isGroup) {
+                            updateUIState(child, visible);
+                        }
                     });
+                    
+                    renderer.render(scene, camera);
+                };
+                
+                // 创建控制器
+                const controller = folder.add({
+                    get value() {
+                        return modelVisibility[obj.uuid];
+                    },
+                    set value(v) {
+                        if (!this.__isUpdating) {
+                            // 仅触发模型状态更新
+                            updateModelState(obj, v);
+                            
+                            // 手动触发渲染
+                            renderer.render(scene, camera);
+                        }
+                    }
+                }, 'value')
+                .name(displayName)
+                .setValue(modelVisibility[obj.uuid]);
+                
+                // 存储控制器引用
+                window.modelTreeControllers[obj.uuid] = controller;
+                
+                // 强制刷新显示
+                controller.updateDisplay();
                 
                 // 递归处理子对象
                 const children = obj.children || (obj.userData && obj.userData.children);
@@ -335,7 +395,7 @@ function updateSun() {
 
 // 初始化GUI控制面板
 function initGUI() {
-    const gui = new GUI();
+    let gui = new GUI();
     
     // 添加几何体文件夹
     modelFolder = gui.addFolder('模型管理');
@@ -354,21 +414,71 @@ function initGUI() {
     // 添加全选/全不选按钮
     const selectionControls = {
         selectAll: function() {
-            const glbParent = scene.children.find(child => child.name === window.currentModelName);
-            if (glbParent) {
-                const updateVisibility = (obj, visible) => {
-                    obj.visible = visible;
-                    if (modelVisibility[obj.uuid] !== undefined) {
-                        modelVisibility[obj.uuid] = visible;
-                    }
-                    if (obj.children && obj.children.length > 0) {
-                        obj.children.forEach(child => updateVisibility(child, visible));
-                    }
-                };
-                
-                glbParent.children.forEach(child => updateVisibility(child, true));
-                createModelTree(); // 刷新树以更新UI状态
-                renderer.render(scene, camera);
+            try {
+                const mainGroup = scene.children.find(child => child.name === 'MainGLBGroup');
+                if (mainGroup) {
+                    // 递归更新所有模型可见性
+                    const updateAllVisibility = (obj) => {
+                        obj.visible = true;
+                        modelVisibility[obj.uuid] = true; // 强制更新所有模型状态
+                        if (obj.children && obj.children.length > 0) {
+                            obj.children.forEach(child => updateAllVisibility(child));
+                        }
+                        console.log(`更新模型可见性: ${obj.name || obj.uuid}`, obj.visible);
+                    };
+                    
+                    // 更新主组及其所有子模型
+                    updateAllVisibility(mainGroup);
+                    
+                    // 强制刷新模型树和UI
+                    setTimeout(() => {
+                        console.log('开始刷新模型树...');
+                        
+                        // 先更新所有父级文件夹状态
+                        if (window.modelTreeFolders) {
+                            window.modelTreeFolders.forEach(folder => {
+                                if (folder && folder.__controllers) {
+                                    folder.__controllers.forEach(ctrl => {
+                                        if (ctrl.property === 'visible') {
+                                            ctrl.updateDisplay();
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                        
+                        // 重新创建模型树
+                        createModelTrees();
+                        console.log('模型树刷新完成');
+                        renderer.render(scene, camera);
+                        
+                        // 完全重建模型树并同步状态
+                        let refreshModelTree = () => {
+                            // 重新创建模型树
+                            createModelTrees();
+                            
+                            // 强制同步所有状态
+                            Object.keys(modelVisibility).forEach(uuid => {
+                                const obj = scene.getObjectByProperty('uuid', uuid);
+                                if (obj) obj.visible = modelVisibility[uuid];
+                            });
+                            
+                            // 确保场景集合状态
+                            if (gui.__folders && gui.__folders['场景集合']) {
+                                const allSelected = Object.values(modelVisibility).every(v => v === true);
+                                gui.__folders['场景集合'].__controllers[0].setValue(allSelected);
+                                gui.__folders['场景集合'].__controllers[0].updateDisplay();
+                            }
+                            
+                            renderer.render(scene, camera);
+                        };
+                        
+                        // 执行刷新
+                        refreshModelTree();
+                    }, 50); // 优化延迟时间
+                }
+            } catch (e) {
+                console.error('全选功能出错:', e);
             }
         },
         deselectAll: function() {
