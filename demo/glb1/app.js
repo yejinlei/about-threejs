@@ -114,16 +114,46 @@ function createModelTrees() {
     // 存储所有模型树文件夹
     window.modelTreeFolders = [];
     
+    // 创建一个主文件夹用于所有模型树
+    const mainModelTreeFolder = modelFolder.addFolder('场景集合');
+    window.modelTreeFolders.push(mainModelTreeFolder);
+    
+    // 为模型拓扑树添加显示/隐藏控制
+    mainModelTreeFolder.add({visible: true}, 'visible')
+        .name('场景集合')
+        .onChange(function(value) {
+            const mainGroup = scene.children.find(child => child.name === 'MainGLBGroup');
+            if (mainGroup) {
+                mainGroup.visible = value;
+                renderer.render(scene, camera);
+            }
+        });
+    
     // 为每个模型创建拓扑树
     loadedModels.forEach(model => {
         const modelName = model.name;
         logMessage(`创建模型 ${modelName} 的拓扑树...`);
         
-        // 创建新的模型树文件夹
-        const modelTreeFolder = modelFolder.addFolder(`${modelName}模型拓扑树`);
-        window.modelTreeFolders.push(modelTreeFolder);
+        // 创建新的模型树子文件夹
+        const modelTreeFolder = mainModelTreeFolder.addFolder(modelName);
         
-        const glbParent = scene.children.find(child => child.name === modelName);
+        // 添加GLB模型整体显示/隐藏控制
+        modelTreeFolder.add({visible: true}, 'visible')
+            .name('显示模型')
+            .onChange(function(value) {
+                const mainGroup = scene.children.find(child => child.name === 'MainGLBGroup');
+                if (mainGroup) {
+                    const modelNode = mainGroup.children.find(child => child.name === modelName);
+                    if (modelNode) {
+                        modelNode.visible = value;
+                        renderer.render(scene, camera);
+                    }
+                }
+            });
+        
+        // 从主组中查找模型
+const mainGroup = scene.children.find(child => child.name === 'MainGLBGroup');
+const glbParent = mainGroup ? mainGroup.children.find(child => child.name === modelName) : null;
         if (glbParent) {
             // 检查是否有子模型
             const hasChildren = (glbParent.children && glbParent.children.length > 0) || 
@@ -189,19 +219,14 @@ function createModelTrees() {
                     addModelToTree(child, modelTreeFolder);
                 });
             }
-            
-            // 打开拓扑树文件夹
-            modelTreeFolder.open();
         } else {
             console.warn(`未找到${modelName}模型或子模型为空`);
             modelTreeFolder.add({ message: `未找到${modelName}模型` }, 'message').name('状态').disable();
         }
     });
     
-    // 设置第一个模型树为当前活动的
-    if (window.modelTreeFolders && window.modelTreeFolders.length > 0) {
-        window.modelTreeFolder = window.modelTreeFolders[0];
-    }
+    // 打开主模型树文件夹
+    mainModelTreeFolder.open();
 }
 
 // 为了兼容旧代码保留的函数
@@ -313,25 +338,18 @@ function initGUI() {
     const gui = new GUI();
     
     // 添加几何体文件夹
-    modelFolder = gui.addFolder('模型控制');
+    modelFolder = gui.addFolder('模型管理');
     
-    // 添加模型拓扑树功能
-    let modelTreeFolder = modelFolder.addFolder('模型拓扑树');
-    // 将模型树文件夹添加到全局作用域，以便在函数间共享
-    window.modelTreeFolder = modelTreeFolder;
+    // // 添加模型拓扑树功能
+    // let modelTreeFolder = modelFolder.addFolder('模型拓扑树');
+    // // 将模型树文件夹添加到全局作用域，以便在函数间共享
+    // window.modelTreeFolder = modelTreeFolder;
     
-    // 存储模型可见性状态的对象
+    // // 存储模型可见性状态的对象
 
 
     
-    // 添加刷新拓扑树按钮
-    modelFolder.add({ 
-        refreshTree: function() {
-            console.log('刷新模型树...');
-            createModelTree();
-            console.log('模型树刷新完成');
-        } 
-    }, 'refreshTree').name('刷新模型树');
+    
     
     // 添加全选/全不选按钮
     const selectionControls = {
@@ -448,23 +466,23 @@ function initGUI() {
     // 添加过滤输入框 - 使用onChange而不是onFinishChange，实现实时过滤
     modelFolder.add(filterOptions, 'pattern').name('模型名称过滤').onChange(filterOptions.applyFilter);
     
-    // 添加模型显示控制
-    const showModels = { show: true };
-    modelFolder.add(showModels, 'show').name('显示模型').onChange(function(value) {
-        // 控制模型的显示/隐藏逻辑
-        console.log('模型显示状态:', value);
-        const glbModels = scene.children.filter(child => child.name === window.currentModelName);
-        if (glbModels.length > 0) {
-            glbModels.forEach(model => {
-                if (model) model.visible = value;
-            });
-            if (renderer && scene && camera) {
-                renderer.render(scene, camera); // 强制渲染一帧
-            }
-        } else {
-            console.warn(`未找到${window.currentModelName}模型`);
-        }
-    });
+    // // 添加模型显示控制
+    // const showModels = { show: true };
+    // modelFolder.add(showModels, 'show').name('显示模型').onChange(function(value) {
+    //     // 控制模型的显示/隐藏逻辑
+    //     console.log('模型显示状态:', value);
+    //     const glbModels = scene.children.filter(child => child.name === window.currentModelName);
+    //     if (glbModels.length > 0) {
+    //         glbModels.forEach(model => {
+    //             if (model) model.visible = value;
+    //         });
+    //         if (renderer && scene && camera) {
+    //             renderer.render(scene, camera); // 强制渲染一帧
+    //         }
+    //     } else {
+    //         console.warn(`未找到${window.currentModelName}模型`);
+    //     }
+    // });
 
     // 添加平铺功能
     const tileFunctions = {
@@ -892,10 +910,14 @@ function initScene() {
     loader.setDRACOLoader(dracoLoader);
     
     // 模型文件路径数组 - 可以添加多个模型
-        const modelPaths = [
-            'models/new一层_opt.glb',
-            'models/戴珍珠耳环的黑人少女.glb'
-        ];
+    const modelPaths = [
+        'models/new一层_opt.glb',
+        'models/戴珍珠耳环的黑人少女.glb'
+    ];
+    
+    // 创建一个主组，用于包含所有GLB模型
+    const mainGroup = new THREE.Group();
+    mainGroup.name = 'MainGLBGroup';
     
     // 将第一个模型名称存储为全局变量，以便其他函数使用
     const firstModelName = modelPaths[0].split('/').pop().replace('.glb', '');
@@ -911,8 +933,10 @@ function initScene() {
             function (gltf) {
                 logMessage(`原始模型名称 ${index + 1}: ${gltf.scene.name}`);
                 gltf.scene.name = modelName;
-                scene.add(gltf.scene);
-
+                
+                // 将GLB模型添加到主组中
+                mainGroup.add(gltf.scene);
+                
                 // 记录所有子模型的初始位置
                 gltf.scene.children.forEach(child => {
                     modelInitialPositions[child.uuid] = {
@@ -942,6 +966,9 @@ function initScene() {
             }
         );
     });
+    
+    // 将主组添加到场景中
+    scene.add(mainGroup);
     // 确保useSkybox和parameters.useSkybox保持一致
     useSkybox = parameters.useSkybox;
     
