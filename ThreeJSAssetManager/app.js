@@ -1,26 +1,17 @@
-/**
- * Three.js 游泳池水效果演示
- * 
- * 本示例展示了如何使用 Three.js 创建一个带有逼真水面效果的游泳池场景。
- * 主要特点包括：
- * - 使用 Water 对象创建动态水面效果
- * - 模拟游泳池结构（池边和池内）
- * - 多种光源组合提供逼真照明
- * - 交互式相机控制
- * - 响应式设计，适应窗口大小变化
- */
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import { Water } from 'three/addons/objects/Water.js';
+import { Sky } from 'three/addons/objects/Sky.js';
+import Stats from 'three/addons/libs/stats.module.js';
+import * as dat from 'lil-gui';
 
-// 从全局对象中引入 CDN 加载的模块
-const THREE = window.THREE;
-const { OrbitControls } = window.THREE;
-const { Sky } = window.THREE;
-const GUI = lil.GUI; // 正确引用 lil-gui 库
-
-// @ts-check
-"use strict";
-
-import { sceneManagerInstance } from './ThreeJSAssetsManager/SceneManager.js'
-let scene = sceneManagerInstance.scene
+import DebugUI from './ThreeJSAssetsManager/DebugUI.js';
+let debugui = new DebugUI();
+import SceneManager from './ThreeJSAssetsManager/SceneManager.js';
+let sceneManagerInstance = new SceneManager(); 
+let scene = sceneManagerInstance.scene;
 
 let sky = null; // 天空对象，后续创建
 let sun = null; // 太阳位置，用于天空盒
@@ -81,7 +72,7 @@ renderer.toneMappingExposure = 0.5; // 调整曝光度
 document.body.appendChild(renderer.domElement); // 将渲染器的画布添加到页面
 
 // 添加轨道控制器，实现交互式相机控制
-const controls = new THREE.OrbitControls(camera, renderer.domElement);
+const controls = new OrbitControls(camera, renderer.domElement);
 camera.position.set(0, 100, 200);
 controls.update(); // 更新控制器
 
@@ -170,12 +161,20 @@ const glbParent = mainGroup ? mainGroup.children.find(child => child.name === mo
             
             // 递归创建模型树
             function addModelToTree(obj, folder, prefix = '') {
+                if (!obj || !obj.uuid) {
+                    console.warn('Invalid model object:', obj);
+                    return;
+                }
+                
                 // 为每个模型创建一个可见性控制
                 const objName = obj.name || `未命名模型_${obj.uuid.substring(0, 8)}`;
                 const displayName = prefix + objName;
                 
                 // 初始化可见性状态
-                if (sceneManagerInstance.getModelVisibility(obj.uuid) === undefined) {
+                if (!SceneManager.modelVisibility) {
+                    SceneManager.modelVisibility = {};
+                }
+                if (sceneManagerInstance.modelVisibility[obj.uuid] === undefined) {
                     sceneManagerInstance.setModelVisibility(obj.uuid, obj.visible !== false);
                 }
                 
@@ -397,7 +396,7 @@ function updateSun() {
 
 // 初始化GUI控制面板
 function initGUI() {
-    let gui = new GUI();
+    let gui = new dat.GUI(); // 直接使用 dat.GUI() 构造函数
     
     // 添加几何体文件夹
     modelFolder = gui.addFolder('模型管理');
@@ -1013,8 +1012,8 @@ const loadedModels = [];
 // 初始化场景设置
 function initScene() {
     // 加载 GLB 文件
-    const loader = new THREE.GLTFLoader();
-    const dracoLoader = new THREE.DRACOLoader();
+    const loader = new GLTFLoader();
+    const dracoLoader = new DRACOLoader();
     dracoLoader.setDecoderPath('https://gcore.jsdelivr.net/npm/three@0.132.2/examples/js/libs/draco/');
     loader.setDRACOLoader(dracoLoader);
     

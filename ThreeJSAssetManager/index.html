@@ -3,36 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- 页面标题：Three.js 水效果演示 -->
-    <title>Three.js GLTF/GLB</title>
-    <style>
-        /* 基础样式：移除默认边距，隐藏溢出内容，使canvas占满整个视口 */
-        body { margin: 0; overflow: hidden; }
-        canvas { display: block; }
-    </style>
+    <title>Your Three.js Project</title>
+    
+    <!-- 添加 Import Maps 配置 -->
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "https://gcore.jsdelivr.net/npm/three@0.132.2/build/three.module.js",
+        "three/addons/": "https://gcore.jsdelivr.net/npm/three@0.132.2/examples/jsm/",
+        "lil-gui": "https://cdn.jsdelivr.net/npm/lil-gui@0.18.1/+esm"
+      }
+    }
+    </script>
 </head>
 <body>
+    <!-- 您的页面内容 -->
     <canvas id="canvas01"></canvas>
-    <!-- 引入 Three.js 核心库 -->
-    <script src="https://gcore.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
-    <!-- 引入 GLTF 模型加载器 -->
-    <script src="https://gcore.jsdelivr.net/npm/three@0.132.2/examples/js/loaders/GLTFLoader.js"></script>
-<script src="https://gcore.jsdelivr.net/npm/three@0.132.2/examples/js/libs/draco/draco_decoder.js"></script>
-<script src="https://gcore.jsdelivr.net/npm/three@0.132.2/examples/js/loaders/DRACOLoader.js"></script>
-    <!-- 引入轨道控制器，用于交互式相机控制 -->
-    <script src="https://gcore.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
-    <!-- 引入水效果组件 -->
-    <script src="https://gcore.jsdelivr.net/npm/three@0.132.2/examples/js/objects/Water.js"></script>
-    <!-- 引入天空盒组件 -->
-    <script src="https://gcore.jsdelivr.net/npm/three@0.132.2/examples/js/objects/Sky.js"></script>
-    <!-- 引入性能监控工具 -->
-    <script src="https://gcore.jsdelivr.net/npm/three@0.132.2/examples/js/libs/stats.min.js"></script>
-    <!-- 引入GUI调试界面库 -->
-    <script src="https://gcore.jsdelivr.net/npm/lil-gui@0.18.1/dist/lil-gui.umd.min.js"></script>
-    <!-- 引入应用主脚本 -->
-    <script src="https://gcore.jsdelivr.net/npm/three@0.132.2/examples/js/loaders/GLTFLoader.js"></script>
-<script src="https://gcore.jsdelivr.net/npm/three@0.132.2/examples/js/libs/draco/draco_decoder.js"></script>
-<script src="https://gcore.jsdelivr.net/npm/three@0.132.2/examples/js/loaders/DRACOLoader.js"></script>
-<script type="module" src="app.js"></script>
+    <script type="module" src="app.js"></script>
 </body>
 </html>

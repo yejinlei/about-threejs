@@ -1,18 +1,20 @@
+//import * as THREE from 'https://gcore.jsdelivr.net/npm/three@0.132.2/build/three.min.js'
+import threeJSAssetsManager from './ThreeJSAssetsManager.js'
 /**
  * 场景管理器类
  */
-class SceneManager {
+export default class SceneManager {
   /**
    * 构造函数
    * @param {Object} THREE - Three.js 库对象
    * @param {Object} [options] - 场景配置选项
    */
   constructor(cavas, options = {}) {
-    Window.sceneManagerInstance = this;
+    this.threejsassetsmanagerInstance = new threeJSAssetsManager();
 
-    this.THREE = THREE;
-    this.scene = new THREE.Scene();
     this.cavas = cavas;
+
+    this.scene = new THREE.Scene();
     this.modelVisibility = {}; // 模型可见性状态
     
     // 应用配置选项
@@ -50,9 +52,3 @@ class SceneManager {
     return this.modelVisibility[uuid] !== false;
   }
 }
-
-// 创建实例
-const sceneManagerInstance = new SceneManager(document.getElementById("canvas01"));
-
-// 同时导出类和实例
-export { SceneManager, sceneManagerInstance, sceneManagerInstance as default };
