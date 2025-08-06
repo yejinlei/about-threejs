@@ -19,7 +19,7 @@ const GUI = lil.GUI; // 正确引用 lil-gui 库
 // @ts-check
 "use strict";
 
-import { sceneManagerInstance } from './SceneManager.js'
+import { sceneManagerInstance } from './scenemanager.js'
 let scene = sceneManagerInstance.scene
 
 let sky = null; // 天空对象，后续创建
@@ -1020,8 +1020,8 @@ function initScene() {
     
     // 模型文件路径数组 - 可以添加多个模型
     const modelPaths = [
-        'models/new一层_opt.glb',
-        'models/戴珍珠耳环的黑人少女.glb'
+        'models/戴珍珠耳环的黑人少女.glb',
+        'models/Horse.glb'
     ];
     
     // 创建一个主组，用于包含所有GLB模型

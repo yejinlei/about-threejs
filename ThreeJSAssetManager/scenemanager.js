@@ -7,14 +7,20 @@ class SceneManager {
    * @param {Object} THREE - Three.js 库对象
    * @param {Object} [options] - 场景配置选项
    */
-  constructor(THREE, options = {}) {
+  constructor(cavas, options = {}) {
+    Window.sceneManagerInstance = this;
+
     this.THREE = THREE;
     this.scene = new THREE.Scene();
+    this.cavas = cavas;
     this.modelVisibility = {}; // 模型可见性状态
     
     // 应用配置选项
+    // 背景颜色
     if (options.background) {
       this.scene.background = new THREE.Color(options.background);
+    } else {
+      this.scene.background = new THREE.Color(0xffffff);
     }
   }
   
@@ -46,7 +52,7 @@ class SceneManager {
 }
 
 // 创建实例
-const sceneManagerInstance = new SceneManager(THREE);
+const sceneManagerInstance = new SceneManager(document.getElementById("canvas01"));
 
 // 同时导出类和实例
 export { SceneManager, sceneManagerInstance, sceneManagerInstance as default };
