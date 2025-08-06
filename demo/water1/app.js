@@ -10,6 +10,8 @@
  * - 响应式设计，适应窗口大小变化
  */
 
+import DebugUI from "../../ThreeJSAssetManager/ThreeJSAssetsManager/DebugUI";
+
 // 从全局对象中引入 CDN 加载的模块
 const THREE = window.THREE;
 const { OrbitControls } = window.THREE;
@@ -629,7 +631,9 @@ function initScene() {
 }
 
 // 调用初始化函数
-initGUI();
+if (DebugUI.debug === true) {
+    initGUI();
+}
 initScene();
 
 /**

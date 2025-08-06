@@ -8,7 +8,10 @@ import Stats from 'three/addons/libs/stats.module.js';
 import * as dat from 'lil-gui';
 
 import DebugUI from './ThreeJSAssetsManager/DebugUI.js';
-let debugui = new DebugUI();
+let debugUI = new DebugUI();
+let gui = debugUI.gui
+let guiFolder = debugUI.guiFolder;
+
 import SceneManager from './ThreeJSAssetsManager/SceneManager.js';
 let sceneManagerInstance = new SceneManager(); 
 let scene = sceneManagerInstance.scene;
@@ -23,7 +26,6 @@ let envMap = null; // 环境贴图
 let ambientLight = null; // 环境光
 let directionalLight = null; // 定向光
 let hemisphereLight = null; // 半球光
-let modelFolder = null; // 模型控制文件夹
 
 // GUI参数
 const parameters = {
@@ -97,7 +99,7 @@ function createModelTrees() {
     
     // 清理之前创建的模型树文件夹
     if (window.modelTreeFolders && window.modelTreeFolders.length > 0) {
-        const gui = modelFolder.__parent;
+        const gui = guiFolder.__parent;
         window.modelTreeFolders.forEach(folder => {
             try {
                 if (folder && gui && typeof gui.removeFolder === 'function') {
@@ -113,7 +115,7 @@ function createModelTrees() {
     window.modelTreeFolders = [];
     
     // 创建一个主文件夹用于所有模型树
-    const mainModelTreeFolder = modelFolder.addFolder('场景集合');
+    const mainModelTreeFolder = guiFolder.addFolder('场景集合');
     window.modelTreeFolders.push(mainModelTreeFolder);
     
     // 为模型拓扑树添加显示/隐藏控制
@@ -396,10 +398,10 @@ function updateSun() {
 
 // 初始化GUI控制面板
 function initGUI() {
-    let gui = new dat.GUI(); // 直接使用 dat.GUI() 构造函数
+    // let gui = new dat.GUI(); // 直接使用 dat.GUI() 构造函数
     
     // 添加几何体文件夹
-    modelFolder = gui.addFolder('模型管理');
+    guiFolder = gui.addFolder('模型管理');
     
     // // 添加模型拓扑树功能
     // let modelTreeFolder = modelFolder.addFolder('模型拓扑树');
@@ -459,7 +461,7 @@ function initGUI() {
                             createModelTrees();
                             
                             // 强制同步所有状态
-                            sceneManagerInstance.syncAllModelVisibility(scene);
+                            //sceneManagerInstance.syncAllModelVisibility(scene);
                             
                             // 确保场景集合状态
                             if (gui.__folders && gui.__folders['场景集合']) {
@@ -499,8 +501,8 @@ function initGUI() {
         }
     };
     
-    modelFolder.add(selectionControls, 'selectAll').name('全选');
-    modelFolder.add(selectionControls, 'deselectAll').name('全不选');
+    guiFolder.add(selectionControls, 'selectAll').name('全选');
+    guiFolder.add(selectionControls, 'deselectAll').name('全不选');
     
     // 添加模型过滤功能
     const filterOptions = {
@@ -572,7 +574,7 @@ function initGUI() {
     };
     
     // 添加过滤输入框 - 使用onChange而不是onFinishChange，实现实时过滤
-    modelFolder.add(filterOptions, 'pattern').name('模型名称过滤').onChange(filterOptions.applyFilter);
+    guiFolder.add(filterOptions, 'pattern').name('模型名称过滤').onChange(filterOptions.applyFilter);
     
     // // 添加模型显示控制
     // const showModels = { show: true };
@@ -701,12 +703,12 @@ function initGUI() {
     };
 
     // 添加平铺按钮
-    modelFolder.add(tileFunctions, 'tileXY').name('XY平铺');
-    modelFolder.add(tileFunctions, 'tileXZ').name('XZ平铺');
-    modelFolder.add(tileFunctions, 'tileYZ').name('YZ平铺');
+    guiFolder.add(tileFunctions, 'tileXY').name('XY平铺');
+    guiFolder.add(tileFunctions, 'tileXZ').name('XZ平铺');
+    guiFolder.add(tileFunctions, 'tileYZ').name('YZ平铺');
     
     // 添加恢复按钮
-    modelFolder.add(tileFunctions, 'reset').name('恢复');
+    guiFolder.add(tileFunctions, 'reset').name('恢复');
     
     // 添加渲染参数控制
     const renderFolder = gui.addFolder('渲染参数');
@@ -1123,7 +1125,7 @@ function initScene() {
 }
 
 // 调用初始化函数
-initGUI();
+if (debugUI.debug === true) initGUI();
 initScene();
 
 // 确保在GUI初始化后，如果有模型已加载则创建模型树

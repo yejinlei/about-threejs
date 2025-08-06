@@ -1,4 +1,4 @@
-import * as dat from 'https://gcore.jsdelivr.net/npm/lil-gui@0.18.1/dist/lil-gui.umd.min.js'
+import * as dat from 'lil-gui';
 
 export default class DebugUI 
 {
@@ -18,7 +18,9 @@ export default class DebugUI
         if ( this.debug === true )
         {
             // 当调试模式开启时，使用 lil-gui 库创建一个图形用户界面实例
-            this.debugui = new dat.GUI();
+            this.gui = new dat.GUI();
+
+            this.guiFolder = null;
             // 打印调试界面创建成功的日志，提示用户调试界面已正常加载
             console.log('DebugUI 已加载');
         }
