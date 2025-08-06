@@ -19,7 +19,7 @@ const GUI = lil.GUI; // 正确引用 lil-gui 库
 // @ts-check
 "use strict";
 
-import { sceneManagerInstance } from './scenemanager.js'
+import { sceneManagerInstance } from './ThreeJSAssetManager/SceneManager.js'
 let scene = sceneManagerInstance.scene
 
 let sky = null; // 天空对象，后续创建
