@@ -21,8 +21,8 @@ export default class CameraManager
         // 从管理器实例中获取画布元素
         this.canvas = this.threejsassetsmanagerInstance.canvas;
         // GUI 调试功能实例
-        this.debug = this.threejsassetsmanagerInstance.debuguiinstance.debug;
-        this.gui = this.threejsassetsmanagerInstance.debuguiinstance.gui;
+        this.debug = this.threejsassetsmanagerInstance.debug;
+        this.gui = this.threejsassetsmanagerInstance.gui;
         
 
         // 调用方法设置相机实例
@@ -78,9 +78,9 @@ export default class CameraManager
      */
       resize() {
         // 更新相机的宽高比
-        this.percamera.aspect = this.sizes.width / this.sizes.height;
+        this.camera.aspect = this.sizes.width / this.sizes.height;
         // 更新相机的投影矩阵，使新的宽高比生效
-        this.percamera.updateProjectionMatrix();
+        this.camera.updateProjectionMatrix();
       }
     
     /**

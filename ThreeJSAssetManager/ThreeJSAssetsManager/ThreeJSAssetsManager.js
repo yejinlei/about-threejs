@@ -50,6 +50,8 @@ export default class ThreeJSAssetsManager
 
     // 初始化调试 GUI 实例
     this.debuguiinstance = new DebugUI();
+    this.debug = this.debuguiinstance.debug;
+    this.gui = this.debuguiinstance.gui;
 
     // 初始化场景管理器并获取场景对象
     this.sceneManagerinstance = new SceneManager(this.canvas);
