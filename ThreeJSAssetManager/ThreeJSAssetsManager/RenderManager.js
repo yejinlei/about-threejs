@@ -8,7 +8,7 @@ export default class RenderManager {
         this.canvas = this.threejsassetsmanagerInstance.canvas;
         this.sizes = this.threejsassetsmanagerInstance.sizes;
         this.scene = this.threejsassetsmanagerInstance.scene;
-        this.percamera = this.threejsassetsmanagerInstance.cameraManagerInstance.percamera;
+        this.camera = this.threejsassetsmanagerInstance.cameraManagerInstance.camera;
 ;
  
         this.webGLRenderer = new WebGLRenderer({
@@ -33,6 +33,6 @@ export default class RenderManager {
       }
     
       update() {
-        this.webGLRenderer.render(this.scene, this.percamera);
+        this.webGLRenderer.render(this.scene, this.camera);
       }
 }

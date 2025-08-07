@@ -15,10 +15,12 @@ export default class DebugUI
         this.debug = window.location.hash === '#debug';
 
         // 检查调试模式是否已开启
+        this.gui = null;
         if ( this.debug === true )
         {
             // 当调试模式开启时，使用 lil-gui 库创建一个图形用户界面实例
             this.gui = new dat.GUI();
+
 
             this.guiFolder = null;
             // 打印调试界面创建成功的日志，提示用户调试界面已正常加载
