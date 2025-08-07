@@ -27,6 +27,14 @@ export default class SceneManager {
   }
   
   /**
+   * 设置当前场景对象
+   * @param {THREE.Scene} scene - 要设置的新场景对象
+   */
+  setScence(scene) {
+    // 将传入的场景对象赋值给当前实例的场景属性
+    this.scene = scene;
+  }
+  /**
    * 获取场景对象
    * @returns {THREE.Scene}
    */
@@ -50,5 +58,12 @@ export default class SceneManager {
    */
   getModelVisibility(uuid) {
     return this.modelVisibility[uuid] !== false;
+  }
+}
+
+class ModelsManager 
+{
+  constructor(THREE) 
+  {
   }
 }

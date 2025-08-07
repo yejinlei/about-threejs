@@ -1,4 +1,4 @@
-import EventEmitter from './EventEmitter';
+import EventEmitter from './EventEmitter.js';
 
 export default class Sizes extends EventEmitter {
   /**
@@ -27,7 +27,8 @@ export default class Sizes extends EventEmitter {
       this.pixelRatio = Math.min(window.devicePixelRatio, 2);
 
       // 触发父类的 'resize' 事件，通知所有监听该事件的对象窗口尺寸已改变
-      // taken from super class
+      // ThreeJSAssetsManager\DebugUI.js 中调用了本类Sizes中的on函数，注册了它自己的resize()方法，将 ThreeJSAssetsManager\DebugUI.js中的resize()方法注册在sizes.on('resize',()=>{})中。
+      // 此处会调用ThreeJSAssetsManager\DebugUI.js 中的resize()方法，对页面的尺寸进行重新调整，重新计算所有UI的比例和大小。
       this.trigger('resize')
     });
   }

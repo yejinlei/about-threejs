@@ -1125,8 +1125,9 @@ function initScene() {
 }
 
 // 调用初始化函数
-if (debugUI.debug === true) initGUI();
 initScene();
+if (debugUI.debug === true) initGUI();
+
 
 // 确保在GUI初始化后，如果有模型已加载则创建模型树
 if (loadedModels.length > 0) {
