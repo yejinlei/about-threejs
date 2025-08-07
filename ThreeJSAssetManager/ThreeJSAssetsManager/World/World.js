@@ -1,4 +1,4 @@
-import { BoxGeometry, MeshBasicMaterial, MeshStandardMaterial, Mesh, DirectionalLight, Color} from 'three';
+import { BoxGeometry, MeshBasicMaterial, MeshStandardMaterial, Mesh } from 'three';
 import ThreeJSAssetsManager from "../ThreeJSAssetsManager.js";
 
 export default class worldManager
@@ -10,7 +10,7 @@ export default class worldManager
         
         // 测试用
         const geometry1 = new BoxGeometry( 1, 1, 1 ); 
-        const material = new MeshBasicMaterial( {color: 0x00ff00} ); 
+        const material = new MeshBasicMaterial( {color: 0xffff00} ); 
         const cube = new Mesh( geometry1, material ); 
         this.scene.add(cube);
 
