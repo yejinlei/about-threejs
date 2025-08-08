@@ -58,7 +58,7 @@ export default class LightManager {
             this.setupRectAreaLightGUI(folder);
             
             // 打开 LightManager 文件夹
-            folder.open();
+            folder.close();
         } else {
             // 非调试模式下的默认灯光
             if (config['LightManager'].ambientLight.enabled) {

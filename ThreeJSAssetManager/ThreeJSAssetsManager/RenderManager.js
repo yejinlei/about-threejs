@@ -49,9 +49,10 @@ export default class RenderManager {
       }
 
       setupDebugGUI() {
-        const rendererFolder = this.gui.addFolder('Renderer');
+        const rendererFolder = this.gui.addFolder('Renderer(渲染管理)');
         rendererFolder.add(this.webGLRenderer, 'toneMappingExposure').min(0).max(5).step(0.01).name('曝光度');
         rendererFolder.addColor(this.webGLRenderer, 'clearColor').name('背景色');
         rendererFolder.add(this.webGLRenderer.shadowMap, 'enabled').name('阴影映射');
+        rendererFolder.close();
       }
 }

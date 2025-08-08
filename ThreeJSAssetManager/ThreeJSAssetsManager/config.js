@@ -42,7 +42,7 @@ export default {
             intensity: 0.5 // 降低环境光强度以避免过曝
         },
         directionalLight: {
-            enabled: true,
+            enabled: false,
             color: 0xffffff, // 默认方向光颜色：白色
             intensity: 1.5, // 增强方向光强度
             position: {x: 5, y: 10, z: 5} // 调整方向光位置以产生更好的阴影效果
@@ -50,15 +50,15 @@ export default {
         // 新增矩形区域光源配置
         rectAreaLight: {
             enabled: true, // 默认禁用
-            color: 0xffffff, // 光源颜色（白色）
+            color: 0x00ff7b, // 光源颜色（白色）
             intensity: 1.0, // 光照强度
-            width: 10, // 光源宽度
-            height: 10, // 光源高度
-            position: {x: 0, y: 1, z: 0}, // 光源位置
-            lookAt: {x: 0, y: 0, z: 0} // 光源朝向
+            width: 5.1, // 光源宽度
+            height: 12.4, // 光源高度
+            position: {x: -7, y: 1.3, z: 0.8}, // 光源位置
+            lookAt: {x: 0.8, y: -9.6, z: 0.8} // 光源朝向
         },
         hemiLight: {    
-            enabled: true, // 半球光默认不启用
+            enabled: false, // 半球光默认不启用
             color: 0xffffff,
             groundColor: 0xffffff,
             intensity: 1,
@@ -69,7 +69,7 @@ export default {
             }
         },
         spotLight: {
-            enabled: true,
+            enabled: false,
             color: 0x709af3,  // 聚光灯颜色（淡蓝色）
             intensity: 2,    // 增强聚光灯强度
             distance: 50,     // 设置合理的照射距离
@@ -88,7 +88,7 @@ export default {
             }
         },
         pointLight: {
-            enabled: true, // 点光源默认不启用
+            enabled: false, // 点光源默认不启用
             color: 0xffccaa,  // 调整为暖色调
             intensity: 0.8,    // 降低点光源强度
             position: {x: -5, y: 3, z: -5}, // 调整点光源位置
