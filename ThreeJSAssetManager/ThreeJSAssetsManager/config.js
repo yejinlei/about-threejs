@@ -47,17 +47,28 @@ export default {
             intensity: 1, // 默认方向光强度
             position: [0, 1, 0] // 默认方向光位置
         }, 
+        // 新增矩形区域光源配置
+        rectAreaLight: {
+            enabled: true, // 默认禁用
+            color: 0xffffff, // 光源颜色（白色）
+            intensity: 1.0, // 光照强度
+            width: 10, // 光源宽度
+            height: 10, // 光源高度
+            position: [5, 5, 0] // 光源位置 [x, y, z]
+        },
         hemiLight: {
-            enabled: false, // 半球光默认不启用
+            enabled: true, // 半球光默认不启用
             color: 0xffffff,
             groundColor: 0xffffff,
-            intensity: 1
+            intensity: 1,
+            position: [0, 5, 0]
         },
         spotLight: {
-            enabled: false,
+            enabled: true,
             color: 0x709af3,  // 聚光灯颜色（淡蓝色）
             intensity: 1,    // 聚光灯强度
             position: [0, 5, 5],  // 聚光灯位置
+            target: [0, 0, 0],  // 聚光灯目标位置
             shadowmap: {
                 enabled: true,  // 是否启用聚光灯阴影
                 near: 10,      // 阴影近裁剪面
@@ -68,7 +79,7 @@ export default {
             }
         },
         pointLight: {
-            enabled: false, // 点光源默认不启用
+            enabled: true, // 点光源默认不启用
             color: 0xffffff,  // 点光源颜色（白色）
             intensity: 1,    // 点光源强度
             position: [0, 5, 5],  // 点光源位置

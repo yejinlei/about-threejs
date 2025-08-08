@@ -1,5 +1,8 @@
 // 从 three 库中导入所需的类，用于创建灯光、几何体、材质和辅助对象
-import { AmbientLight, DirectionalLight, PointLight, SpotLight, Mesh, SphereGeometry, MeshBasicMaterial, ArrowHelper, Vector3 } from 'three';
+import { AmbientLight, HemisphereLight, DirectionalLight, PointLight, SpotLight, RectAreaLight, Mesh, SphereGeometry, MeshBasicMaterial, ArrowHelper, Vector3 } from 'three';
+import { RectAreaLightHelper } from 'three/addons/helpers/RectAreaLightHelper.js';
+// import { SpotLightHelper } from 'three/helpers/SpotLightHelper.js';
+import { HemisphereLightHelper, DirectionalLightHelper, PointLightHelper, SpotLightHelper }from'three';
 // 导入 ThreeJSAssetsManager 类，用于获取项目管理实例
 import ThreeJSAssetsManager from "./ThreeJSAssetsManager.js";
 // 导入配置文件，用于获取灯光配置信息
@@ -85,7 +88,7 @@ export default class LightManager {
             }
             
             // 点光源配置
-            if (config['LightManager'].pointLight && config['LightManager'].pointLight.enabled) {
+            if (config['LightManager'].pointLight.enabled) {
                 // 创建点光源实例，根据配置设置颜色、强度、距离和衰减
                 const pointLight = new PointLight(
                     config['LightManager'].pointLight.color,
@@ -131,7 +134,7 @@ export default class LightManager {
             }
             
             // 聚光灯配置
-            if (config['LightManager'].spotLight && config['LightManager'].spotLight.enabled) {
+            if (config['LightManager'].spotLight.enabled) {
                 // 创建聚光灯实例，根据配置设置颜色、强度、距离、角度、半影和衰减
                 const spotLight = new SpotLight(
                     config['LightManager'].spotLight.color,
@@ -143,7 +146,6 @@ export default class LightManager {
                 );
                 // 根据配置设置聚光灯的位置
                 spotLight.position.set(...config['LightManager'].spotLight.position);
-                // 根据配置设置聚光灯目标的位置
                 spotLight.target.position.set(...config['LightManager'].spotLight.target);
                 // 将聚光灯添加到场景中
                 this.scene.add(spotLight);
@@ -178,6 +180,89 @@ export default class LightManager {
                 spotFolder.add(spotLight.position, 'y', -10, 10, 0.1).name('Y轴位置');
                 // 在 GUI 中添加滑动条，用于调整聚光灯 Z 轴位置，范围 -10 到 10，步长 0.1
                 spotFolder.add(spotLight.position, 'z', -10, 10, 0.1).name('Z轴位置');
+            }
+            
+            // 半球光配置
+            if (config['LightManager'].hemiLight && config['LightManager'].hemiLight.enabled) {
+                const hemisphereLight = new HemisphereLight(
+                    config['LightManager'].hemiLight.color,
+                       config['LightManager'].hemiLight.groundColor,
+                      config['LightManager'].hemiLight.intensity
+                );
+                hemisphereLight.position.set(...config['LightManager'].hemiLight.position);
+                this.scene.add(hemisphereLight);
+
+                // 添加半球光方向辅助箭头
+                const dir = new Vector3(0, 1, 0); // 半球光默认方向向上
+                const arrowHelper = new ArrowHelper(dir, hemisphereLight.position, 2, 0xffff00);
+                this.scene.add(arrowHelper);
+                this.lightHelpers.push(arrowHelper);
+
+                const hemisphericFolder = folder.addFolder('半球光');
+                hemisphericFolder.addColor(hemisphereLight, 'color').name('天空颜色');
+                hemisphericFolder.addColor(hemisphereLight, 'groundColor').name('地面颜色');
+                  hemisphericFolder.add(hemisphereLight, 'intensity', 0, 5, 0.1).name('强度');
+                  hemisphericFolder.add(hemisphereLight.position, 'x', -10, 10, 0.1).name('X轴位置');
+                  hemisphericFolder.add(hemisphereLight.position, 'y', -10, 10, 0.1).name('Y轴位置');
+                  hemisphericFolder.add(hemisphereLight.position, 'z', -10, 10, 0.1).name('Z轴位置');
+            }
+
+            // 半球光配置
+            if (config['LightManager'].hemiLight && config['LightManager'].hemiLight.enabled) {
+                  const hemisphereLight = new HemisphereLight(
+                      config['LightManager'].hemiLight.color,
+                      config['LightManager'].hemiLight.groundColor,
+                      config['LightManager'].hemiLight.intensity
+                );
+                hemisphereLight.position.set(...config['LightManager'].hemiLight.position);
+                this.scene.add(hemisphereLight);
+
+                // 添加半球光方向辅助箭头
+                const dir = new Vector3(0, 1, 0); // 半球光默认方向向上
+                const arrowHelper = new ArrowHelper(dir, hemisphereLight.position, 2, 0xffff00);
+                this.scene.add(arrowHelper);
+                this.lightHelpers.push(arrowHelper);
+
+                const hemisphericFolder = folder.addFolder('半球光');
+                hemisphericFolder.addColor(hemisphereLight, 'color').name('天空颜色');
+                hemisphericFolder.addColor(hemisphereLight, 'groundColor').name('地面颜色');
+                  hemisphericFolder.add(hemisphereLight, 'intensity', 0, 5, 0.1).name('强度');
+                hemisphericFolder.add(hemisphereLight.position, 'x', -10, 10, 0.1).name('X轴位置');
+                  hemisphericFolder.add(hemisphereLight.position, 'y', -10, 10, 0.1).name('Y轴位置');
+                  hemisphericFolder.add(hemisphereLight.position, 'z', -10, 10, 0.1).name('Z轴位置');
+            }
+
+            // 矩形区域光配置
+            if (config['LightManager'].rectAreaLight.enabled) {
+                const rectAreaLight = new RectAreaLight(
+                    config['LightManager'].rectAreaLight.color,
+                    config['LightManager'].rectAreaLight.intensity,
+                    config['LightManager'].rectAreaLight.width,
+                    config['LightManager'].rectAreaLight.height
+                );
+                rectAreaLight.position.set(...config['LightManager'].rectAreaLight.position);
+                this.scene.add(rectAreaLight);
+
+                if (this.debug) {
+                    const rectAreaLightHelper = new RectAreaLightHelper(rectAreaLight);
+                    this.scene.add(rectAreaLightHelper);
+                    this.lightHelpers.push(rectAreaLightHelper);
+                }
+                
+                // 添加矩形区域光辅助对象
+                const rectAreaLightHelper = new RectAreaLightHelper(rectAreaLight);
+                this.scene.add(rectAreaLightHelper);
+                this.lightHelpers.push(rectAreaLightHelper);
+                
+                // 矩形区域光GUI控制
+                const rectAreaFolder = folder.addFolder('矩形区域光');
+                rectAreaFolder.addColor(rectAreaLight, 'color').name('颜色');
+                rectAreaFolder.add(rectAreaLight, 'intensity', 0, 10, 0.1).name('强度');
+                rectAreaFolder.add(rectAreaLight, 'width', 0, 20, 0.1).name('宽度');
+                rectAreaFolder.add(rectAreaLight, 'height', 0, 20, 0.1).name('高度');
+                rectAreaFolder.add(rectAreaLight.position, 'x', -10, 10, 0.1).name('X轴位置');
+                rectAreaFolder.add(rectAreaLight.position, 'y', -10, 10, 0.1).name('Y轴位置');
+                rectAreaFolder.add(rectAreaLight.position, 'z', -10, 10, 0.1).name('Z轴位置');
             }
             
             // 打开 LightManager 文件夹
@@ -270,6 +355,35 @@ export default class LightManager {
                 this.scene.add(spotLightHelper);
                 // 将聚光灯辅助对象添加到辅助对象数组中
                 this.lightHelpers.push(spotLightHelper);
+            }
+            
+            // 半球光配置
+            if (config['LightManager'].hemiLight && config['LightManager'].hemiLight.enabled) {
+                  const hemisphereLight = new HemisphereLight(
+                      config['LightManager'].hemiLight.color,
+                    config['LightManager'].hemiLight.groundColor,
+                      config['LightManager'].hemiLight.intensity
+                );
+                hemisphereLight.position.set(...config['LightManager'].hemiLight.position);
+                this.scene.add(hemisphereLight);
+
+                // 添加半球光方向辅助箭头
+                const dir = new Vector3(0, 1, 0); // 半球光默认方向向上
+                const arrowHelper = new ArrowHelper(dir, hemisphereLight.position, 2, 0xffff00);
+                this.scene.add(arrowHelper);
+                this.lightHelpers.push(arrowHelper);
+            }
+            
+            // 矩形区域光配置
+            if (config['LightManager'].rectAreaLight.enabled) {
+                const rectAreaLight = new RectAreaLight(
+                    config['LightManager'].rectAreaLight.color,
+                    config['LightManager'].rectAreaLight.intensity,
+                    config['LightManager'].rectAreaLight.width,
+                    config['LightManager'].rectAreaLight.height
+                );
+                rectAreaLight.position.set(...config['LightManager'].rectAreaLight.position);
+                this.scene.add(rectAreaLight);
             }
         }
     }
