@@ -1,4 +1,4 @@
-import { BoxGeometry, MeshBasicMaterial, MeshStandardMaterial, Mesh } from 'three';
+import { BoxGeometry, MeshBasicMaterial, MeshStandardMaterial, Mesh, PlaneGeometry } from 'three';
 import ThreeJSAssetsManager from "../ThreeJSAssetsManager.js";
 
 export default class worldManager
@@ -19,6 +19,14 @@ export default class worldManager
         const cube2 = new Mesh( geometry2, materia2 ); 
         this.scene.add(cube2);
         cube2.position.set(0,0,2);
+        
+        // 添加平面几何体
+        const planeGeometry = new PlaneGeometry(10, 10);
+        const planeMaterial = new MeshStandardMaterial({ color: 0x777777 });
+        const plane = new Mesh(planeGeometry, planeMaterial);
+        plane.rotation.x = -Math.PI / 2;
+        plane.position.y = -1;
+        this.scene.add(plane);
 
     }
 
