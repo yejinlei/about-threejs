@@ -34,235 +34,565 @@ export default class LightManager {
             const folder = this.gui.addFolder('LightManager(光源管理)');
             
             // 环境光配置
-            if (config['LightManager'].ambientLight.enabled) {
-                // 创建环境光实例，根据配置设置颜色和强度
-                const ambientLight = new AmbientLight(
-                    config['LightManager'].ambientLight.color,
-                    config['LightManager'].ambientLight.intensity
-                );
-                // 将环境光添加到场景中
-                this.scene.add(ambientLight);
-                
-                // 在 GUI 中为环境光创建一个子文件夹
-                const ambientFolder = folder.addFolder('环境光');
-                // 在 GUI 中添加颜色选择器，用于调整环境光颜色
-                ambientFolder.addColor(ambientLight, 'color').name('颜色');
-                // 在 GUI 中添加滑动条，用于调整环境光强度，范围 0 到 1，步长 0.01
-                ambientFolder.add(ambientLight, 'intensity', 0, 1, 0.01).name('强度');
+            const ambientLightConfig = config['LightManager'].ambientLight;
+            const ambientFolder = folder.addFolder('环境光');
+            ambientFolder.add(ambientLightConfig, 'enabled').name('启用').onChange((value) => {
+                if (value) {
+                    this.ambientLight = new AmbientLight(ambientLightConfig.color, ambientLightConfig.intensity);
+                    this.scene.add(this.ambientLight);
+                } else {
+                    if (this.ambientLight) {
+                        this.scene.remove(this.ambientLight);
+                        this.ambientLight = null;
+                    }
+                }
+            });
+            ambientFolder.addColor(ambientLightConfig, 'color').name('颜色').onChange((value) => {
+                if (this.ambientLight) {
+                    this.ambientLight.color.set(value);
+                }
+            });
+            ambientFolder.add(ambientLightConfig, 'intensity', 0, 1, 0.01).name('强度').onChange((value) => {
+                if (this.ambientLight) {
+                    this.ambientLight.intensity = value;
+                }
+            });
+            
+            // 初始创建环境光
+            if (ambientLightConfig.enabled) {
+                this.ambientLight = new AmbientLight(ambientLightConfig.color, ambientLightConfig.intensity);
+                this.scene.add(this.ambientLight);
             }
             
             // 方向光配置
-            if (config['LightManager'].directionalLight.enabled) {
-                // 创建方向光实例，根据配置设置颜色和强度
-                const directionalLight = new DirectionalLight(
-                    config['LightManager'].directionalLight.color,
-                    config['LightManager'].directionalLight.intensity
+            const directionalLightConfig = config['LightManager'].directionalLight;
+            const directionalFolder = folder.addFolder('方向光');
+            directionalFolder.add(directionalLightConfig, 'enabled').name('启用').onChange((value) => {
+                if (value) {
+                    // 创建方向光
+                    this.directionalLight = new DirectionalLight(
+                        directionalLightConfig.color,
+                        directionalLightConfig.intensity
+                    );
+                    this.directionalLight.position.set(directionalLightConfig.position.x, directionalLightConfig.position.y, directionalLightConfig.position.z);
+                    this.scene.add(this.directionalLight);
+                    
+                    // 创建箭头辅助
+                    const dir = new Vector3().copy(this.directionalLight.position).normalize();
+                    this.directionalLightHelper = new ArrowHelper(dir, this.directionalLight.position, 2, 0xff0000);
+                    this.scene.add(this.directionalLightHelper);
+                    this.lightHelpers.push(this.directionalLightHelper);
+                } else {
+                    // 移除方向光
+                    if (this.directionalLight) {
+                        this.scene.remove(this.directionalLight);
+                        this.directionalLight = null;
+                    }
+                    // 移除辅助对象
+                    if (this.directionalLightHelper) {
+                        this.scene.remove(this.directionalLightHelper);
+                        const index = this.lightHelpers.indexOf(this.directionalLightHelper);
+                        if (index > -1) this.lightHelpers.splice(index, 1);
+                        this.directionalLightHelper = null;
+                    }
+                }
+            });
+            
+            // 颜色控制
+            directionalFolder.addColor(directionalLightConfig, 'color').name('颜色').onChange((value) => {
+                if (this.directionalLight) {
+                    this.directionalLight.color.set(value);
+                }
+            });
+            
+            // 强度控制
+            directionalFolder.add(directionalLightConfig, 'intensity', 0, 5, 0.1).name('强度').onChange((value) => {
+                if (this.directionalLight) {
+                    this.directionalLight.intensity = value;
+                }
+            });
+            
+            // 位置控制
+            directionalFolder.add(directionalLightConfig.position, 'x', -10, 10, 0.1).name('X轴位置').onChange((value) => {
+                if (this.directionalLight) {
+                    this.directionalLight.position.x = value;
+                    // 更新辅助箭头方向
+                    if (this.directionalLightHelper) {
+                        const dir = new Vector3().copy(this.directionalLight.position).normalize();
+                        this.directionalLightHelper.setDirection(dir);
+                    }
+                }
+            });
+            directionalFolder.add(directionalLightConfig.position, 'y', -10, 10, 0.1).name('Y轴位置').onChange((value) => {
+                if (this.directionalLight) {
+                    this.directionalLight.position.y = value;
+                    if (this.directionalLightHelper) {
+                        const dir = new Vector3().copy(this.directionalLight.position).normalize();
+                        this.directionalLightHelper.setDirection(dir);
+                    }
+                }
+            });
+            directionalFolder.add(directionalLightConfig.position, 'z', -10, 10, 0.1).name('Z轴位置').onChange((value) => {
+                if (this.directionalLight) {
+                    this.directionalLight.position.z = value;
+                    if (this.directionalLightHelper) {
+                        const dir = new Vector3().copy(this.directionalLight.position).normalize();
+                        this.directionalLightHelper.setDirection(dir);
+                    }
+                }
+            });
+            
+            // 初始创建
+            if (directionalLightConfig.enabled) {
+                this.directionalLight = new DirectionalLight(
+                    directionalLightConfig.color,
+                    directionalLightConfig.intensity
                 );
-                // 根据配置设置方向光的位置
-                directionalLight.position.set(...config['LightManager'].directionalLight.position);
-                // 将方向光添加到场景中
-                this.scene.add(directionalLight);
+                this.directionalLight.position.set(directionalLightConfig.position.x, directionalLightConfig.position.y, directionalLightConfig.position.z);
+                this.scene.add(this.directionalLight);
                 
-                // 添加方向光辅助箭头（增大尺寸和颜色对比度）
-                // 创建一个向量，复制方向光的位置并归一化
-                const dir = new Vector3().copy(directionalLight.position).normalize();
-                // 创建箭头辅助对象，红色，长度为 2
-                const arrowHelper = new ArrowHelper(dir, directionalLight.position, 2, 0xff0000); 
-                // 将箭头辅助对象添加到场景中
-                this.scene.add(arrowHelper);
-                // 将箭头辅助对象添加到辅助对象数组中
-                this.lightHelpers.push(arrowHelper);
-                
-                // 在 GUI 中为方向光创建一个子文件夹
-                const directionalFolder = folder.addFolder('方向光');
-                // 在 GUI 中添加颜色选择器，用于调整方向光颜色
-                directionalFolder.addColor(directionalLight, 'color').name('颜色');
-                // 在 GUI 中添加滑动条，用于调整方向光强度，范围 0 到 5，步长 0.1
-                directionalFolder.add(directionalLight, 'intensity', 0, 5, 0.1).name('强度');
-                // 在 GUI 中添加滑动条，用于调整方向光 X 轴位置，范围 -10 到 10，步长 0.1
-                directionalFolder.add(directionalLight.position, 'x', -10, 10, 0.1).name('X轴位置');
-                // 在 GUI 中添加滑动条，用于调整方向光 Y 轴位置，范围 -10 到 10，步长 0.1
-                directionalFolder.add(directionalLight.position, 'y', -10, 10, 0.1).name('Y轴位置');
-                // 在 GUI 中添加滑动条，用于调整方向光 Z 轴位置，范围 -10 到 10，步长 0.1
-                directionalFolder.add(directionalLight.position, 'z', -10, 10, 0.1).name('Z轴位置');
+                const dir = new Vector3().copy(this.directionalLight.position).normalize();
+                this.directionalLightHelper = new ArrowHelper(dir, this.directionalLight.position, 2, 0xff0000);
+                this.scene.add(this.directionalLightHelper);
+                this.lightHelpers.push(this.directionalLightHelper);
             }
             
             // 点光源配置
-            if (config['LightManager'].pointLight.enabled) {
-                // 创建点光源实例，根据配置设置颜色、强度、距离和衰减
-                const pointLight = new PointLight(
-                    config['LightManager'].pointLight.color,
-                    config['LightManager'].pointLight.intensity,
-                    config['LightManager'].pointLight.distance,
-                    config['LightManager'].pointLight.decay
+            const pointLightConfig = config['LightManager'].pointLight;
+            const pointFolder = folder.addFolder('点光源');
+            
+            // 启用控制
+            pointFolder.add(pointLightConfig, 'enabled').name('启用').onChange((value) => {
+                if (value) {
+                    // 创建点光源
+                    this.pointLight = new PointLight(
+                        pointLightConfig.color,
+                        pointLightConfig.intensity,
+                        pointLightConfig.distance,
+                        pointLightConfig.decay
+                    );
+                    this.pointLight.position.set(pointLightConfig.position.x, pointLightConfig.position.y, pointLightConfig.position.z);
+                    this.scene.add(this.pointLight);
+                    
+                    // 创建辅助球体
+                    const sphereGeometry = new SphereGeometry(0.3, 32, 32);
+                    const sphereMaterial = new MeshBasicMaterial({ color: 0x00ff00 });
+                    this.pointLightHelper = new Mesh(sphereGeometry, sphereMaterial);
+                    this.pointLightHelper.position.copy(this.pointLight.position);
+                    this.scene.add(this.pointLightHelper);
+                    this.lightHelpers.push(this.pointLightHelper);
+                } else {
+                    // 移除点光源
+                    if (this.pointLight) {
+                        this.scene.remove(this.pointLight);
+                        this.pointLight = null;
+                    }
+                    // 移除辅助球体
+                    if (this.pointLightHelper) {
+                        this.scene.remove(this.pointLightHelper);
+                        const index = this.lightHelpers.indexOf(this.pointLightHelper);
+                        if (index > -1) this.lightHelpers.splice(index, 1);
+                        this.pointLightHelper = null;
+                    }
+                }
+            });
+            
+            // 颜色控制
+            pointFolder.addColor(pointLightConfig, 'color').name('颜色').onChange((value) => {
+                if (this.pointLight) {
+                    this.pointLight.color.set(value);
+                }
+            });
+            
+            // 强度控制
+            pointFolder.add(pointLightConfig, 'intensity', 0, 5, 0.1).name('强度').onChange((value) => {
+                if (this.pointLight) {
+                    this.pointLight.intensity = value;
+                }
+            });
+            
+            // 距离控制
+            pointFolder.add(pointLightConfig, 'distance', 0, 100, 1).name('距离').onChange((value) => {
+                if (this.pointLight) {
+                    this.pointLight.distance = value;
+                }
+            });
+            
+            // 衰减控制
+            pointFolder.add(pointLightConfig, 'decay', 0, 2, 0.1).name('衰减').onChange((value) => {
+                if (this.pointLight) {
+                    this.pointLight.decay = value;
+                }
+            });
+            
+            // 位置控制
+            pointFolder.add(pointLightConfig.position, 'x', -10, 10, 0.1).name('X轴位置').onChange((value) => {
+                if (this.pointLight) {
+                    this.pointLight.position.x = value;
+                    if (this.pointLightHelper) this.pointLightHelper.position.x = value;
+                }
+            });
+            pointFolder.add(pointLightConfig.position, 'y', -10, 10, 0.1).name('Y轴位置').onChange((value) => {
+                if (this.pointLight) {
+                    this.pointLight.position.y = value;
+                    if (this.pointLightHelper) this.pointLightHelper.position.y = value;
+                }
+            });
+            pointFolder.add(pointLightConfig.position, 'z', -10, 10, 0.1).name('Z轴位置').onChange((value) => {
+                if (this.pointLight) {
+                    this.pointLight.position.z = value;
+                    if (this.pointLightHelper) this.pointLightHelper.position.z = value;
+                }
+            });
+            
+            // 初始创建
+            if (pointLightConfig.enabled) {
+                this.pointLight = new PointLight(
+                    pointLightConfig.color,
+                    pointLightConfig.intensity,
+                    pointLightConfig.distance,
+                    pointLightConfig.decay
                 );
-                // 根据配置设置点光源的位置
-                pointLight.position.set(...config['LightManager'].pointLight.position);
-                // 将点光源添加到场景中
-                this.scene.add(pointLight);
+                this.pointLight.position.set(pointLightConfig.position.x, pointLightConfig.position.y, pointLightConfig.position.z);
+                this.scene.add(this.pointLight);
                 
-                // 添加点光源辅助球体（增大尺寸和颜色对比度）
-                // 创建球体几何体，半径为 0.3
-                const sphereGeometry = new SphereGeometry(0.3, 32, 32); 
-                // 创建基础材质，绿色
-                const sphereMaterial = new MeshBasicMaterial({ color: 0x00ff00 }); 
-                // 创建球体网格对象
-                const sphere = new Mesh(sphereGeometry, sphereMaterial);
-                // 将球体位置复制为点光源的位置
-                sphere.position.copy(pointLight.position);
-                // 将球体添加到场景中
-                this.scene.add(sphere);
-                // 将球体添加到辅助对象数组中
-                this.lightHelpers.push(sphere);
-                
-                // 在 GUI 中为点光源创建一个子文件夹
-                const pointFolder = folder.addFolder('点光源');
-                // 在 GUI 中添加颜色选择器，用于调整点光源颜色
-                pointFolder.addColor(pointLight, 'color').name('颜色');
-                // 在 GUI 中添加滑动条，用于调整点光源强度，范围 0 到 5，步长 0.1
-                pointFolder.add(pointLight, 'intensity', 0, 5, 0.1).name('强度');
-                // 在 GUI 中添加滑动条，用于调整点光源照射距离，范围 0 到 100，步长 1
-                pointFolder.add(pointLight, 'distance', 0, 100, 1).name('距离');
-                // 在 GUI 中添加滑动条，用于调整点光源衰减，范围 0 到 2，步长 0.1
-                pointFolder.add(pointLight, 'decay', 0, 2, 0.1).name('衰减');
-                // 在 GUI 中添加滑动条，用于调整点光源 X 轴位置，范围 -10 到 10，步长 0.1
-                pointFolder.add(pointLight.position, 'x', -10, 10, 0.1).name('X轴位置');
-                // 在 GUI 中添加滑动条，用于调整点光源 Y 轴位置，范围 -10 到 10，步长 0.1
-                pointFolder.add(pointLight.position, 'y', -10, 10, 0.1).name('Y轴位置');
-                // 在 GUI 中添加滑动条，用于调整点光源 Z 轴位置，范围 -10 到 10，步长 0.1
-                pointFolder.add(pointLight.position, 'z', -10, 10, 0.1).name('Z轴位置');
+                const sphereGeometry = new SphereGeometry(0.3, 32, 32);
+                const sphereMaterial = new MeshBasicMaterial({ color: 0x00ff00 });
+                this.pointLightHelper = new Mesh(sphereGeometry, sphereMaterial);
+                this.pointLightHelper.position.copy(this.pointLight.position);
+                this.scene.add(this.pointLightHelper);
+                this.lightHelpers.push(this.pointLightHelper);
             }
             
             // 聚光灯配置
-            if (config['LightManager'].spotLight.enabled) {
-                // 创建聚光灯实例，根据配置设置颜色、强度、距离、角度、半影和衰减
-                const spotLight = new SpotLight(
-                    config['LightManager'].spotLight.color,
-                    config['LightManager'].spotLight.intensity,
-                    config['LightManager'].spotLight.distance,
-                    config['LightManager'].spotLight.angle,
-                    config['LightManager'].spotLight.penumbra,
-                    config['LightManager'].spotLight.decay
+            const spotLightConfig = config['LightManager'].spotLight;
+            const spotFolder = folder.addFolder('聚光灯');
+            
+            // 启用控制
+            spotFolder.add(spotLightConfig, 'enabled').name('启用').onChange((value) => {
+                if (value) {
+                    // 创建聚光灯
+                    this.spotLight = new SpotLight(
+                        spotLightConfig.color,
+                        spotLightConfig.intensity,
+                        spotLightConfig.distance,
+                        spotLightConfig.angle,
+                        spotLightConfig.penumbra,
+                        spotLightConfig.decay
+                    );
+                    this.spotLight.position.set(spotLightConfig.position.x, spotLightConfig.position.y, spotLightConfig.position.z);
+                    this.spotLight.target.position.set(spotLightConfig.target[0], spotLightConfig.target[1], spotLightConfig.target[2]);
+                    this.scene.add(this.spotLight);
+                    this.scene.add(this.spotLight.target);
+                    
+                    // 创建辅助对象
+                    this.spotLightHelper = new SpotLightHelper(this.spotLight, 0x0000ff);
+                    this.scene.add(this.spotLightHelper);
+                    this.lightHelpers.push(this.spotLightHelper);
+                } else {
+                    // 移除聚光灯
+                    if (this.spotLight) {
+                        this.scene.remove(this.spotLight);
+                        this.scene.remove(this.spotLight.target);
+                        this.spotLight = null;
+                    }
+                    // 移除辅助对象
+                    if (this.spotLightHelper) {
+                        this.scene.remove(this.spotLightHelper);
+                        const index = this.lightHelpers.indexOf(this.spotLightHelper);
+                        if (index > -1) this.lightHelpers.splice(index, 1);
+                        this.spotLightHelper = null;
+                    }
+                }
+            });
+            
+            // 颜色控制
+            spotFolder.addColor(spotLightConfig, 'color').name('颜色').onChange((value) => {
+                if (this.spotLight) {
+                    this.spotLight.color.set(value);
+                }
+            });
+            
+            // 强度控制
+            spotFolder.add(spotLightConfig, 'intensity', 0, 5, 0.1).name('强度').onChange((value) => {
+                if (this.spotLight) {
+                    this.spotLight.intensity = value;
+                }
+            });
+            
+            // 距离控制
+            spotFolder.add(spotLightConfig, 'distance', 0, 100, 1).name('距离').onChange((value) => {
+                if (this.spotLight) {
+                    this.spotLight.distance = value;
+                }
+            });
+            
+            // 角度控制
+            spotFolder.add(spotLightConfig, 'angle', 0, Math.PI / 2, 0.01).name('角度').onChange((value) => {
+                if (this.spotLight) {
+                    this.spotLight.angle = value;
+                    if (this.spotLightHelper) this.spotLightHelper.update();
+                }
+            });
+            
+            // 半影控制
+            spotFolder.add(spotLightConfig, 'penumbra', 0, 1, 0.01).name('半影').onChange((value) => {
+                if (this.spotLight) {
+                    this.spotLight.penumbra = value;
+                    if (this.spotLightHelper) this.spotLightHelper.update();
+                }
+            });
+            
+            // 衰减控制
+            spotFolder.add(spotLightConfig, 'decay', 0, 2, 0.1).name('衰减').onChange((value) => {
+                if (this.spotLight) {
+                    this.spotLight.decay = value;
+                }
+            });
+            
+            // 位置控制
+            spotFolder.add(spotLightConfig.position, 'x', -10, 10, 0.1).name('X轴位置').onChange((value) => {
+                if (this.spotLight) {
+                    this.spotLight.position.x = value;
+                    if (this.spotLightHelper) this.spotLightHelper.update();
+                }
+            });
+            spotFolder.add(spotLightConfig.position, 'y', -10, 10, 0.1).name('Y轴位置').onChange((value) => {
+                if (this.spotLight) {
+                    this.spotLight.position.y = value;
+                    if (this.spotLightHelper) this.spotLightHelper.update();
+                }
+            });
+            spotFolder.add(spotLightConfig.position, 'z', -10, 10, 0.1).name('Z轴位置').onChange((value) => {
+                if (this.spotLight) {
+                    this.spotLight.position.z = value;
+                    if (this.spotLightHelper) this.spotLightHelper.update();
+                }
+            });
+            
+            // 初始创建
+            if (spotLightConfig.enabled) {
+                this.spotLight = new SpotLight(
+                    spotLightConfig.color,
+                    spotLightConfig.intensity,
+                    spotLightConfig.distance,
+                    spotLightConfig.angle,
+                    spotLightConfig.penumbra,
+                    spotLightConfig.decay
                 );
-                // 根据配置设置聚光灯的位置
-                spotLight.position.set(...config['LightManager'].spotLight.position);
-                spotLight.target.position.set(...config['LightManager'].spotLight.target);
-                // 将聚光灯添加到场景中
-                this.scene.add(spotLight);
-                // 将聚光灯目标添加到场景中
-                this.scene.add(spotLight.target);
+                this.spotLight.position.set(spotLightConfig.position.x, spotLightConfig.position.y, spotLightConfig.position.z);
+                this.spotLight.target.position.set(spotLightConfig.target[0], spotLightConfig.target[1], spotLightConfig.target[2]);
+                this.scene.add(this.spotLight);
+                this.scene.add(this.spotLight.target);
                 
-                // 添加聚光灯辅助圆锥（增大尺寸和颜色对比度）
-                // 创建聚光灯辅助对象，蓝色
-                const spotLightHelper = new SpotLightHelper(spotLight, 0x0000ff); 
-                // 将聚光灯辅助对象添加到场景中
-                this.scene.add(spotLightHelper);
-                // 将聚光灯辅助对象添加到辅助对象数组中
-                this.lightHelpers.push(spotLightHelper);
-                
-                // 在 GUI 中为聚光灯创建一个子文件夹
-                const spotFolder = folder.addFolder('聚光灯');
-                // 在 GUI 中添加颜色选择器，用于调整聚光灯颜色
-                spotFolder.addColor(spotLight, 'color').name('颜色');
-                // 在 GUI 中添加滑动条，用于调整聚光灯强度，范围 0 到 5，步长 0.1
-                spotFolder.add(spotLight, 'intensity', 0, 5, 0.1).name('强度');
-                // 在 GUI 中添加滑动条，用于调整聚光灯照射距离，范围 0 到 100，步长 1
-                spotFolder.add(spotLight, 'distance', 0, 100, 1).name('距离');
-                // 在 GUI 中添加滑动条，用于调整聚光灯角度，范围 0 到 π/2，步长 0.01
-                spotFolder.add(spotLight, 'angle', 0, Math.PI / 2, 0.01).name('角度');
-                // 在 GUI 中添加滑动条，用于调整聚光灯半影，范围 0 到 1，步长 0.01
-                spotFolder.add(spotLight, 'penumbra', 0, 1, 0.01).name('半影');
-                // 在 GUI 中添加滑动条，用于调整聚光灯衰减，范围 0 到 2，步长 0.1
-                spotFolder.add(spotLight, 'decay', 0, 2, 0.1).name('衰减');
-                // 在 GUI 中添加滑动条，用于调整聚光灯 X 轴位置，范围 -10 到 10，步长 0.1
-                spotFolder.add(spotLight.position, 'x', -10, 10, 0.1).name('X轴位置');
-                // 在 GUI 中添加滑动条，用于调整聚光灯 Y 轴位置，范围 -10 到 10，步长 0.1
-                spotFolder.add(spotLight.position, 'y', -10, 10, 0.1).name('Y轴位置');
-                // 在 GUI 中添加滑动条，用于调整聚光灯 Z 轴位置，范围 -10 到 10，步长 0.1
-                spotFolder.add(spotLight.position, 'z', -10, 10, 0.1).name('Z轴位置');
+                this.spotLightHelper = new SpotLightHelper(this.spotLight, 0x0000ff);
+                this.scene.add(this.spotLightHelper);
+                this.lightHelpers.push(this.spotLightHelper);
             }
             
             // 半球光配置
-            if (config['LightManager'].hemiLight && config['LightManager'].hemiLight.enabled) {
-                const hemisphereLight = new HemisphereLight(
-                    config['LightManager'].hemiLight.color,
-                       config['LightManager'].hemiLight.groundColor,
-                      config['LightManager'].hemiLight.intensity
-                );
-                hemisphereLight.position.set(...config['LightManager'].hemiLight.position);
-                this.scene.add(hemisphereLight);
-
-                // 添加半球光方向辅助箭头
-                const dir = new Vector3(0, 1, 0); // 半球光默认方向向上
-                const arrowHelper = new ArrowHelper(dir, hemisphereLight.position, 2, 0xffff00);
-                this.scene.add(arrowHelper);
-                this.lightHelpers.push(arrowHelper);
-
+            const hemiLightConfig = config['LightManager'].hemiLight;
+            if (hemiLightConfig) {
                 const hemisphericFolder = folder.addFolder('半球光');
-                hemisphericFolder.addColor(hemisphereLight, 'color').name('天空颜色');
-                hemisphericFolder.addColor(hemisphereLight, 'groundColor').name('地面颜色');
-                  hemisphericFolder.add(hemisphereLight, 'intensity', 0, 5, 0.1).name('强度');
-                  hemisphericFolder.add(hemisphereLight.position, 'x', -10, 10, 0.1).name('X轴位置');
-                  hemisphericFolder.add(hemisphereLight.position, 'y', -10, 10, 0.1).name('Y轴位置');
-                  hemisphericFolder.add(hemisphereLight.position, 'z', -10, 10, 0.1).name('Z轴位置');
-            }
-
-            // 半球光配置
-            if (config['LightManager'].hemiLight && config['LightManager'].hemiLight.enabled) {
-                  const hemisphereLight = new HemisphereLight(
-                      config['LightManager'].hemiLight.color,
-                      config['LightManager'].hemiLight.groundColor,
-                      config['LightManager'].hemiLight.intensity
-                );
-                hemisphereLight.position.set(...config['LightManager'].hemiLight.position);
-                this.scene.add(hemisphereLight);
-
-                // 添加半球光方向辅助箭头
-                const dir = new Vector3(0, 1, 0); // 半球光默认方向向上
-                const arrowHelper = new ArrowHelper(dir, hemisphereLight.position, 2, 0xffff00);
-                this.scene.add(arrowHelper);
-                this.lightHelpers.push(arrowHelper);
-
-                const hemisphericFolder = folder.addFolder('半球光');
-                hemisphericFolder.addColor(hemisphereLight, 'color').name('天空颜色');
-                hemisphericFolder.addColor(hemisphereLight, 'groundColor').name('地面颜色');
-                  hemisphericFolder.add(hemisphereLight, 'intensity', 0, 5, 0.1).name('强度');
-                hemisphericFolder.add(hemisphereLight.position, 'x', -10, 10, 0.1).name('X轴位置');
-                  hemisphericFolder.add(hemisphereLight.position, 'y', -10, 10, 0.1).name('Y轴位置');
-                  hemisphericFolder.add(hemisphereLight.position, 'z', -10, 10, 0.1).name('Z轴位置');
+                
+                // 启用控制
+                hemisphericFolder.add(hemiLightConfig, 'enabled').name('启用').onChange((value) => {
+                    if (value) {
+                        // 创建半球光
+                        this.hemisphereLight = new HemisphereLight(
+                            hemiLightConfig.color,
+                            hemiLightConfig.groundColor,
+                            hemiLightConfig.intensity
+                        );
+                        this.hemisphereLight.position.set(hemiLightConfig.position.x, hemiLightConfig.position.y, hemiLightConfig.position.z);
+                        this.scene.add(this.hemisphereLight);
+                        
+                        // 创建方向辅助箭头
+                        const dir = new Vector3(0, 1, 0); // 半球光默认方向向上
+                        this.hemisphereLightHelper = new ArrowHelper(dir, this.hemisphereLight.position, 2, 0xffff00);
+                        this.scene.add(this.hemisphereLightHelper);
+                        this.lightHelpers.push(this.hemisphereLightHelper);
+                    } else {
+                        // 移除半球光
+                        if (this.hemisphereLight) {
+                            this.scene.remove(this.hemisphereLight);
+                            this.hemisphereLight = null;
+                        }
+                        // 移除辅助箭头
+                        if (this.hemisphereLightHelper) {
+                            this.scene.remove(this.hemisphereLightHelper);
+                            const index = this.lightHelpers.indexOf(this.hemisphereLightHelper);
+                            if (index > -1) this.lightHelpers.splice(index, 1);
+                            this.hemisphereLightHelper = null;
+                        }
+                    }
+                });
+                
+                // 天空颜色控制
+                hemisphericFolder.addColor(hemiLightConfig, 'color').name('天空颜色').onChange((value) => {
+                    if (this.hemisphereLight) {
+                        this.hemisphereLight.color.set(value);
+                    }
+                });
+                
+                // 地面颜色控制
+                hemisphericFolder.addColor(hemiLightConfig, 'groundColor').name('地面颜色').onChange((value) => {
+                    if (this.hemisphereLight) {
+                        this.hemisphereLight.groundColor.set(value);
+                    }
+                });
+                
+                // 强度控制
+                hemisphericFolder.add(hemiLightConfig, 'intensity', 0, 5, 0.1).name('强度').onChange((value) => {
+                    if (this.hemisphereLight) {
+                        this.hemisphereLight.intensity = value;
+                    }
+                });
+                
+                // 位置控制
+                hemisphericFolder.add(hemiLightConfig.position, 'x', -10, 10, 0.1).name('X轴位置').onChange((value) => {
+                    if (this.hemisphereLight) {
+                        this.hemisphereLight.position.x = value;
+                        if (this.hemisphereLightHelper) {
+                            this.hemisphereLightHelper.position.x = value;
+                        }
+                    }
+                });
+                hemisphericFolder.add(hemiLightConfig.position, 'y', -10, 10, 0.1).name('Y轴位置').onChange((value) => {
+                    if (this.hemisphereLight) {
+                        this.hemisphereLight.position.y = value;
+                        if (this.hemisphereLightHelper) {
+                            this.hemisphereLightHelper.position.y = value;
+                        }
+                    }
+                });
+                hemisphericFolder.add(hemiLightConfig.position, 'z', -10, 10, 0.1).name('Z轴位置').onChange((value) => {
+                    if (this.hemisphereLight) {
+                        this.hemisphereLight.position.z = value;
+                        if (this.hemisphereLightHelper) {
+                            this.hemisphereLightHelper.position.z = value;
+                        }
+                    }
+                });
+                
+                // 初始创建
+                if (hemiLightConfig.enabled) {
+                    this.hemisphereLight = new HemisphereLight(
+                        hemiLightConfig.color,
+                        hemiLightConfig.groundColor,
+                        hemiLightConfig.intensity
+                    );
+                    this.hemisphereLight.position.set(hemiLightConfig.position.x, hemiLightConfig.position.y, hemiLightConfig.position.z);
+                    this.scene.add(this.hemisphereLight);
+                    
+                    const dir = new Vector3(0, 1, 0);
+                    this.hemisphereLightHelper = new ArrowHelper(dir, this.hemisphereLight.position, 2, 0xffff00);
+                    this.scene.add(this.hemisphereLightHelper);
+                    this.lightHelpers.push(this.hemisphereLightHelper);
+                }
             }
 
             // 矩形区域光配置
-            if (config['LightManager'].rectAreaLight.enabled) {
-                const rectAreaLight = new RectAreaLight(
-                    config['LightManager'].rectAreaLight.color,
-                    config['LightManager'].rectAreaLight.intensity,
-                    config['LightManager'].rectAreaLight.width,
-                    config['LightManager'].rectAreaLight.height
-                );
-                rectAreaLight.position.set(...config['LightManager'].rectAreaLight.position);
-                this.scene.add(rectAreaLight);
-
-                if (this.debug) {
-                    const rectAreaLightHelper = new RectAreaLightHelper(rectAreaLight);
-                    this.scene.add(rectAreaLightHelper);
-                    this.lightHelpers.push(rectAreaLightHelper);
+            const rectAreaLightConfig = config['LightManager'].rectAreaLight;
+            const rectAreaFolder = folder.addFolder('矩形区域光');
+            
+            // 启用控制
+            rectAreaFolder.add(rectAreaLightConfig, 'enabled').name('启用').onChange((value) => {
+                if (value) {
+                    // 创建矩形区域光
+                    this.rectAreaLight = new RectAreaLight(
+                        rectAreaLightConfig.color,
+                        rectAreaLightConfig.intensity,
+                        rectAreaLightConfig.width,
+                        rectAreaLightConfig.height
+                    );
+                    this.rectAreaLight.position.set(rectAreaLightConfig.position.x, rectAreaLightConfig.position.y, rectAreaLightConfig.position.z);
+                    this.scene.add(this.rectAreaLight);
+                    
+                    // 创建辅助对象
+                    this.rectAreaLightHelper = new RectAreaLightHelper(this.rectAreaLight);
+                    this.scene.add(this.rectAreaLightHelper);
+                    this.lightHelpers.push(this.rectAreaLightHelper);
+                } else {
+                    // 移除矩形区域光
+                    if (this.rectAreaLight) {
+                        this.scene.remove(this.rectAreaLight);
+                        this.rectAreaLight = null;
+                    }
+                    // 移除辅助对象
+                    if (this.rectAreaLightHelper) {
+                        this.scene.remove(this.rectAreaLightHelper);
+                        const index = this.lightHelpers.indexOf(this.rectAreaLightHelper);
+                        if (index > -1) this.lightHelpers.splice(index, 1);
+                        this.rectAreaLightHelper = null;
+                    }
                 }
+            });
+            
+            // 颜色控制
+            rectAreaFolder.addColor(rectAreaLightConfig, 'color').name('颜色').onChange((value) => {
+                if (this.rectAreaLight) {
+                    this.rectAreaLight.color.set(value);
+                }
+            });
+            
+            // 强度控制
+            rectAreaFolder.add(rectAreaLightConfig, 'intensity', 0, 10, 0.1).name('强度').onChange((value) => {
+                if (this.rectAreaLight) {
+                    this.rectAreaLight.intensity = value;
+                }
+            });
+            
+            // 宽度控制
+            rectAreaFolder.add(rectAreaLightConfig, 'width', 0, 20, 0.1).name('宽度').onChange((value) => {
+                if (this.rectAreaLight) {
+                    this.rectAreaLight.width = value;
+                    if (this.rectAreaLightHelper) this.rectAreaLightHelper.update();
+                }
+            });
+            
+            // 高度控制
+            rectAreaFolder.add(rectAreaLightConfig, 'height', 0, 20, 0.1).name('高度').onChange((value) => {
+                if (this.rectAreaLight) {
+                    this.rectAreaLight.height = value;
+                    if (this.rectAreaLightHelper) this.rectAreaLightHelper.update();
+                }
+            });
+            
+            // 位置控制
+            rectAreaFolder.add(rectAreaLightConfig.position, 'x', -10, 10, 0.1).name('X轴位置').onChange((value) => {
+                if (this.rectAreaLight) {
+                    this.rectAreaLight.position.x = value;
+                    if (this.rectAreaLightHelper) this.rectAreaLightHelper.position.x = value;
+                }
+            });
+            rectAreaFolder.add(rectAreaLightConfig.position, 'y', -10, 10, 0.1).name('Y轴位置').onChange((value) => {
+                if (this.rectAreaLight) {
+                    this.rectAreaLight.position.y = value;
+                    if (this.rectAreaLightHelper) this.rectAreaLightHelper.position.y = value;
+                }
+            });
+            rectAreaFolder.add(rectAreaLightConfig.position, 'z', -10, 10, 0.1).name('Z轴位置').onChange((value) => {
+                if (this.rectAreaLight) {
+                    this.rectAreaLight.position.z = value;
+                    if (this.rectAreaLightHelper) this.rectAreaLightHelper.position.z = value;
+                }
+            });
+            
+            // 初始创建
+            if (rectAreaLightConfig.enabled) {
+                this.rectAreaLight = new RectAreaLight(
+                    rectAreaLightConfig.color,
+                    rectAreaLightConfig.intensity,
+                    rectAreaLightConfig.width,
+                    rectAreaLightConfig.height
+                );
+                this.rectAreaLight.position.set(rectAreaLightConfig.position.x, rectAreaLightConfig.position.y, rectAreaLightConfig.position.z);
+                this.scene.add(this.rectAreaLight);
                 
-                // 添加矩形区域光辅助对象
-                const rectAreaLightHelper = new RectAreaLightHelper(rectAreaLight);
-                this.scene.add(rectAreaLightHelper);
-                this.lightHelpers.push(rectAreaLightHelper);
-                
-                // 矩形区域光GUI控制
-                const rectAreaFolder = folder.addFolder('矩形区域光');
-                rectAreaFolder.addColor(rectAreaLight, 'color').name('颜色');
-                rectAreaFolder.add(rectAreaLight, 'intensity', 0, 10, 0.1).name('强度');
-                rectAreaFolder.add(rectAreaLight, 'width', 0, 20, 0.1).name('宽度');
-                rectAreaFolder.add(rectAreaLight, 'height', 0, 20, 0.1).name('高度');
-                rectAreaFolder.add(rectAreaLight.position, 'x', -10, 10, 0.1).name('X轴位置');
-                rectAreaFolder.add(rectAreaLight.position, 'y', -10, 10, 0.1).name('Y轴位置');
-                rectAreaFolder.add(rectAreaLight.position, 'z', -10, 10, 0.1).name('Z轴位置');
+                this.rectAreaLightHelper = new RectAreaLightHelper(this.rectAreaLight);
+                this.scene.add(this.rectAreaLightHelper);
+                this.lightHelpers.push(this.rectAreaLightHelper);
             }
             
             // 打开 LightManager 文件夹
