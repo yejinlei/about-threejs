@@ -42,14 +42,14 @@ export default {
             intensity: 1 // 默认环境光强度 <mcreference link="https://blog.csdn.net/weixin_47970498/article/details/146376269" index="1"></mcreference>
         },
         directionalLight: {
-            enabled: false,
+            enabled: true,
             color: 0xffffff, // 默认方向光颜色：白色
             intensity: 1, // 默认方向光强度
             position: {x: 0, y: 1, z: 0} // 默认方向光位置
         }, 
         // 新增矩形区域光源配置
         rectAreaLight: {
-            enabled: false, // 默认禁用
+            enabled: true, // 默认禁用
             color: 0xffffff, // 光源颜色（白色）
             intensity: 1.0, // 光照强度
             width: 10, // 光源宽度
@@ -57,7 +57,7 @@ export default {
             position: {x: 0, y: 1, z: 0} // 光源位置
         },
         hemiLight: {
-            enabled: false, // 半球光默认不启用
+            enabled: true, // 半球光默认不启用
             color: 0xffffff,
             groundColor: 0xffffff,
             intensity: 1,
@@ -68,7 +68,7 @@ export default {
             }
         },
         spotLight: {
-            enabled: false,
+            enabled: true,
             color: 0x709af3,  // 聚光灯颜色（淡蓝色）
             intensity: 1,    // 聚光灯强度
             distance: 0,     // 光照距离（0表示无限远）
@@ -87,7 +87,7 @@ export default {
             }
         },
         pointLight: {
-            enabled: false, // 点光源默认不启用
+            enabled: true, // 点光源默认不启用
             color: 0xffffff,  // 点光源颜色（白色）
             intensity: 1,    // 点光源强度
             position: {x: 0, y: 5, z: 5}, // 点光源位置,

@@ -72,57 +72,26 @@ export default class LightManager {
             }
             
             if (config['LightManager'].directionalLight.enabled) {
-                // 创建方向光实例，根据配置设置颜色和强度
                 const directionalLight = new DirectionalLight(
                     config['LightManager'].directionalLight.color,
                     config['LightManager'].directionalLight.intensity
                 );
-                // 根据配置设置方向光的位置
                 directionalLight.position.copy(config['LightManager'].directionalLight.position);
-                // 将方向光添加到场景中
                 this.scene.add(directionalLight);
-                
-                // 添加方向光辅助箭头（增大尺寸和颜色对比度）
-                // 创建一个向量，复制方向光的位置并归一化
-                const dir = new Vector3().copy(directionalLight.position).normalize();
-                // 创建箭头辅助对象，红色，长度为 2
-                const arrowHelper = new ArrowHelper(dir, directionalLight.position, 2, 0xff0000); 
-                // 将箭头辅助对象添加到场景中
-                this.scene.add(arrowHelper);
-                // 将箭头辅助对象添加到辅助对象数组中
-                this.lightHelpers.push(arrowHelper);
             }
             
             if (config['LightManager'].pointLight && config['LightManager'].pointLight.enabled) {
-                // 创建点光源实例，根据配置设置颜色、强度、距离和衰减
                 const pointLight = new PointLight(
                     config['LightManager'].pointLight.color,
                     config['LightManager'].pointLight.intensity,
                     config['LightManager'].pointLight.distance,
                     config['LightManager'].pointLight.decay
                 );
-                // 根据配置设置点光源的位置
                 pointLight.position.copy(config['LightManager'].pointLight.position);
-                // 将点光源添加到场景中
                 this.scene.add(pointLight);
-                
-                // 添加点光源辅助球体（增大尺寸和颜色对比度）
-                // 创建球体几何体，半径为 0.3
-                const sphereGeometry = new SphereGeometry(0.3, 32, 32); 
-                // 创建基础材质，绿色
-                const sphereMaterial = new MeshBasicMaterial({ color: 0x00ff00 }); 
-                // 创建球体网格对象
-                const sphere = new Mesh(sphereGeometry, sphereMaterial);
-                // 将球体位置复制为点光源的位置
-                sphere.position.copy(pointLight.position);
-                // 将球体添加到场景中
-                this.scene.add(sphere);
-                // 将球体添加到辅助对象数组中
-                this.lightHelpers.push(sphere);
             }
             
             if (config['LightManager'].spotLight && config['LightManager'].spotLight.enabled) {
-                // 创建聚光灯实例，根据配置设置颜色、强度、距离、角度、半影和衰减
                 const spotLight = new SpotLight(
                     config['LightManager'].spotLight.color,
                     config['LightManager'].spotLight.intensity,
@@ -131,42 +100,22 @@ export default class LightManager {
                     config['LightManager'].spotLight.penumbra,
                     config['LightManager'].spotLight.decay
                 );
-                // 根据配置设置聚光灯的位置
                 spotLight.position.set(config['LightManager'].spotLight.position.x, config['LightManager'].spotLight.position.y, config['LightManager'].spotLight.position.z);
-                // 根据配置设置聚光灯目标的位置
                 spotLight.target.position.set(config['LightManager'].spotLight.target[0], config['LightManager'].spotLight.target[1], config['LightManager'].spotLight.target[2]);
-                // 将聚光灯添加到场景中
                 this.scene.add(spotLight);
-                // 将聚光灯目标添加到场景中
                 this.scene.add(spotLight.target);
-                
-                // 添加聚光灯辅助圆锥（增大尺寸和颜色对比度）
-                // 创建聚光灯辅助对象，蓝色
-                const spotLightHelper = new SpotLightHelper(spotLight, 0x0000ff); 
-                // 将聚光灯辅助对象添加到场景中
-                this.scene.add(spotLightHelper);
-                // 将聚光灯辅助对象添加到辅助对象数组中
-                this.lightHelpers.push(spotLightHelper);
             }
             
-            // 半球光配置
             if (config['LightManager'].hemiLight && config['LightManager'].hemiLight.enabled) {
-                  const hemisphereLight = new HemisphereLight(
-                      config['LightManager'].hemiLight.color,
+                const hemisphereLight = new HemisphereLight(
+                    config['LightManager'].hemiLight.color,
                     config['LightManager'].hemiLight.groundColor,
-                      config['LightManager'].hemiLight.intensity
+                    config['LightManager'].hemiLight.intensity
                 );
                 hemisphereLight.position.set(config['LightManager'].hemiLight.position.x, config['LightManager'].hemiLight.position.y, config['LightManager'].hemiLight.position.z);
                 this.scene.add(hemisphereLight);
-
-                // 添加半球光方向辅助箭头
-                const dir = new Vector3(0, 1, 0); // 半球光默认方向向上
-                const arrowHelper = new ArrowHelper(dir, hemisphereLight.position, 2, 0xffff00);
-                this.scene.add(arrowHelper);
-                this.lightHelpers.push(arrowHelper);
             }
             
-            // 矩形区域光配置
             if (config['LightManager'].rectAreaLight.enabled) {
                 const rectAreaLight = new RectAreaLight(
                     config['LightManager'].rectAreaLight.color,
