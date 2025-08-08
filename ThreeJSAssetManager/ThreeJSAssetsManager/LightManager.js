@@ -291,6 +291,8 @@ export default class LightManager {
             this.scene.add(this.rectAreaLightHelper);
             this.lightHelpers.push(this.rectAreaLightHelper);
         }
+
+        rectAreaFolder.close();
     }
 
     setupHemisphereLightGUI(folder) {
@@ -392,6 +394,8 @@ export default class LightManager {
                 this.scene.add(this.hemisphereLightHelper);
                 this.lightHelpers.push(this.hemisphereLightHelper);
             }
+
+            hemisphericFolder.close();
         }
     }
 
@@ -523,6 +527,8 @@ export default class LightManager {
             this.scene.add(this.spotLightHelper);
             this.lightHelpers.push(this.spotLightHelper);
         }
+
+        spotFolder.close();
     }
 
     setupPointLightGUI(folder) {
@@ -641,6 +647,8 @@ export default class LightManager {
             this.scene.add(this.pointLightHelper);
             this.lightHelpers.push(this.pointLightHelper);
         }
+
+        pointFolder.close();
     }
 
     setupDirectionalLightGUI(folder) {
@@ -731,6 +739,8 @@ export default class LightManager {
             this.scene.add(this.directionalLightHelper);
             this.lightHelpers.push(this.directionalLightHelper);
         }
+
+        directionalFolder.close();
     }
 
     setupAmbientLightGUI(folder) {
@@ -769,5 +779,7 @@ export default class LightManager {
             this.ambientLight = new AmbientLight(ambientLightConfig.color, ambientLightConfig.intensity);
             this.scene.add(this.ambientLight);
         }
+
+        ambientFolder.close();
     }
 }
