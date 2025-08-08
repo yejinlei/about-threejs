@@ -124,6 +124,7 @@ export default class LightManager {
                     config['LightManager'].rectAreaLight.height
                 );
                 rectAreaLight.position.set(config['LightManager'].rectAreaLight.position.x, config['LightManager'].rectAreaLight.position.y, config['LightManager'].rectAreaLight.position.z);
+                rectAreaLight.lookAt(config['LightManager'].rectAreaLight.lookAt.x, config['LightManager'].rectAreaLight.lookAt.y, config['LightManager'].rectAreaLight.lookAt.z);
                 this.scene.add(rectAreaLight);
             }
         }
@@ -147,6 +148,7 @@ export default class LightManager {
                     rectAreaLightConfig.height
                 );
                 this.rectAreaLight.position.set(rectAreaLightConfig.position.x, rectAreaLightConfig.position.y, rectAreaLightConfig.position.z);
+                this.rectAreaLight.lookAt(rectAreaLightConfig.lookAt.x, rectAreaLightConfig.lookAt.y, rectAreaLightConfig.lookAt.z);
                 this.scene.add(this.rectAreaLight);
 
                 // 创建辅助对象
@@ -224,6 +226,35 @@ export default class LightManager {
                 }
             }
         });
+        
+        // 朝向控制
+        rectAreaFolder.add(rectAreaLightConfig.lookAt, 'x', -10, 10, 0.1).name('X轴朝向').onChange((value) => {
+            if (this.rectAreaLight) {
+                this.rectAreaLight.lookAt(
+                    value,
+                    rectAreaLightConfig.lookAt.y,
+                    rectAreaLightConfig.lookAt.z
+                );
+            }
+        });
+        rectAreaFolder.add(rectAreaLightConfig.lookAt, 'y', -10, 10, 0.1).name('Y轴朝向').onChange((value) => {
+            if (this.rectAreaLight) {
+                this.rectAreaLight.lookAt(
+                    rectAreaLightConfig.lookAt.x,
+                    value,
+                    rectAreaLightConfig.lookAt.z
+                );
+            }
+        });
+        rectAreaFolder.add(rectAreaLightConfig.lookAt, 'z', -10, 10, 0.1).name('Z轴朝向').onChange((value) => {
+            if (this.rectAreaLight) {
+                this.rectAreaLight.lookAt(
+                    rectAreaLightConfig.lookAt.x,
+                    rectAreaLightConfig.lookAt.y,
+                    value
+                );
+            }
+        });
 
         // 初始创建
         if (rectAreaLightConfig.enabled) {
@@ -234,6 +265,7 @@ export default class LightManager {
                 rectAreaLightConfig.height
             );
             this.rectAreaLight.position.set(rectAreaLightConfig.position.x, rectAreaLightConfig.position.y, rectAreaLightConfig.position.z);
+            this.rectAreaLight.lookAt(rectAreaLightConfig.lookAt.x, rectAreaLightConfig.lookAt.y, rectAreaLightConfig.lookAt.z);
             this.scene.add(this.rectAreaLight);
 
             this.rectAreaLightHelper = new RectAreaLightHelper(this.rectAreaLight);

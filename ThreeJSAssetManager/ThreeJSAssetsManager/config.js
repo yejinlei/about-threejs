@@ -54,7 +54,8 @@ export default {
             intensity: 1.0, // 光照强度
             width: 10, // 光源宽度
             height: 10, // 光源高度
-            position: {x: 0, y: 1, z: 0} // 光源位置
+            position: {x: 0, y: 1, z: 0}, // 光源位置
+            lookAt: {x: 0, y: 0, z: 0} // 光源朝向
         },
         hemiLight: {    
             enabled: true, // 半球光默认不启用
