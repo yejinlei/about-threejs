@@ -6,7 +6,7 @@ export default {
         enabled: true,
         Color: {
             enabled: true,
-            value: 0x000000 // 默认背景色：黑色 <mcreference link="https://blog.csdn.net/w131552/article/details/144246281" index="4"></mcreference>
+            value: 0xababab // 默认背景色：黑色 <mcreference link="https://blog.csdn.net/w131552/article/details/144246281" index="4"></mcreference>
         },
         fog: {
             enabled: false, // 默认禁用雾效
@@ -39,13 +39,13 @@ export default {
         ambientLight: {
             enabled: true,
             color: 0xffffff, // 默认环境光颜色：白色
-            intensity: 1 // 默认环境光强度 <mcreference link="https://blog.csdn.net/weixin_47970498/article/details/146376269" index="1"></mcreference>
+            intensity: 0.5 // 降低环境光强度以避免过曝
         },
         directionalLight: {
             enabled: true,
             color: 0xffffff, // 默认方向光颜色：白色
-            intensity: 1, // 默认方向光强度
-            position: {x: 0, y: 1, z: 0} // 默认方向光位置
+            intensity: 1.5, // 增强方向光强度
+            position: {x: 5, y: 10, z: 5} // 调整方向光位置以产生更好的阴影效果
         }, 
         // 新增矩形区域光源配置
         rectAreaLight: {
@@ -56,7 +56,7 @@ export default {
             height: 10, // 光源高度
             position: {x: 0, y: 1, z: 0} // 光源位置
         },
-        hemiLight: {
+        hemiLight: {    
             enabled: true, // 半球光默认不启用
             color: 0xffffff,
             groundColor: 0xffffff,
@@ -70,12 +70,12 @@ export default {
         spotLight: {
             enabled: true,
             color: 0x709af3,  // 聚光灯颜色（淡蓝色）
-            intensity: 1,    // 聚光灯强度
-            distance: 0,     // 光照距离（0表示无限远）
-            angle: 45,       // 聚光灯角度
-            penumbra: 0.3,      // 聚光灯半影宽度
-            decay: 2,        // 聚光灯衰减率
-            position: {x: 0, y: 5, z: 5}, // 聚光灯位置,
+            intensity: 2,    // 增强聚光灯强度
+            distance: 50,     // 设置合理的照射距离
+            angle: 30,       // 缩小聚光灯角度
+            penumbra: 0.5,      // 增加半影宽度使边缘更柔和
+            decay: 1,        // 降低衰减率使光照更均匀
+            position: {x: 10, y: 15, z: 10}, // 调整聚光灯位置
             target: [0, 0, 0],  // 聚光灯目标位置
             shadowmap: {
                 enabled: true,  // 是否启用聚光灯阴影
@@ -88,12 +88,12 @@ export default {
         },
         pointLight: {
             enabled: true, // 点光源默认不启用
-            color: 0xffffff,  // 点光源颜色（白色）
-            intensity: 1,    // 点光源强度
-            position: {x: 0, y: 5, z: 5}, // 点光源位置,
-            distance: 0,     // 光照距离（0表示无限远）
-            decay: 2,     // 光照衰减率
-            castShadow: false,  // 是否投射阴影
+            color: 0xffccaa,  // 调整为暖色调
+            intensity: 0.8,    // 降低点光源强度
+            position: {x: -5, y: 3, z: -5}, // 调整点光源位置
+            distance: 20,     // 设置合理的照射距离
+            decay: 1.5,     // 调整衰减率
+            castShadow: true,  // 启用阴影投射
             shadowMap: {
                 enabled: true,  // 是否启用阴影贴图
                 near: 10,      // 阴影近裁剪面
