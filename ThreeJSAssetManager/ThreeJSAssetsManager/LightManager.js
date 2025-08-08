@@ -341,6 +341,7 @@ export default class LightManager {
 
                 this.hemisphereLightHelper = new HemisphereLightHelper(this.hemisphereLight, 5);
                 this.scene.add(this.hemisphereLightHelper);
+                this.hemisphereLightHelper.update();
                 this.lightHelpers.push(this.hemisphereLightHelper);
             }
 
@@ -458,7 +459,7 @@ export default class LightManager {
         });
 
         // 初始创建
-        if (!this.debug && spotLightConfig.enabled) {
+        if (spotLightConfig.enabled) {
             this.spotLight = new SpotLight(
                 spotLightConfig.color,
                 spotLightConfig.intensity,
@@ -474,6 +475,7 @@ export default class LightManager {
 
             this.spotLightHelper = new SpotLightHelper(this.spotLight, 0x0000ff);
             this.scene.add(this.spotLightHelper);
+            this.spotLightHelper.update();
             this.lightHelpers.push(this.spotLightHelper);
         }
 
@@ -582,7 +584,7 @@ export default class LightManager {
         });
 
         // 初始创建
-        if (!this.debug && pointLightConfig.enabled) {
+        if (pointLightConfig.enabled) {
             this.pointLight = new PointLight(
                 pointLightConfig.color,
                 pointLightConfig.intensity,
@@ -594,6 +596,7 @@ export default class LightManager {
 
             this.pointLightHelper = new PointLightHelper(this.pointLight, 0x00ff00);
             this.scene.add(this.pointLightHelper);
+            this.pointLightHelper.update();
             this.lightHelpers.push(this.pointLightHelper);
         }
 
@@ -676,7 +679,7 @@ export default class LightManager {
         });
 
         // 初始创建
-        if (!this.debug && directionalLightConfig.enabled) {
+        if (directionalLightConfig.enabled) {
             this.directionalLight = new DirectionalLight(
                 directionalLightConfig.color,
                 directionalLightConfig.intensity
@@ -686,6 +689,7 @@ export default class LightManager {
 
             this.directionalLightHelper = new DirectionalLightHelper(this.directionalLight, 5);
             this.scene.add(this.directionalLightHelper);
+            this.directionalLightHelper.update();
             this.lightHelpers.push(this.directionalLightHelper);
         }
 
