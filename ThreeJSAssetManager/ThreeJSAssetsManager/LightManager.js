@@ -28,8 +28,8 @@ export default class LightManager {
         // 用于存储所有灯光的辅助对象，方便后续管理
         this.lightHelpers = []; 
 
-        // 检查调试模式是否开启，GUI 对象是否存在，以及灯光管理器配置是否启用
-        if (this.debug && this.gui && config['LightManager'] && config['LightManager'].enabled) {
+        // 检查调试模式是否开启，GUI 对象是否存在
+        if (this.debug && this.gui) {
             // 在 GUI 中创建一个名为 'LightManager(光源管理)' 的文件夹
             const folder = this.gui.addFolder('LightManager(光源管理)');
             
@@ -120,6 +120,7 @@ export default class LightManager {
                     if (this.directionalLightHelper) {
                         const dir = new Vector3().copy(this.directionalLight.position).normalize();
                         this.directionalLightHelper.setDirection(dir);
+                        this.directionalLightHelper.position.copy(this.directionalLight.position);
                     }
                 }
             });
@@ -143,7 +144,7 @@ export default class LightManager {
             });
             
             // 初始创建
-            if (directionalLightConfig.enabled) {
+            if (!this.debug && directionalLightConfig.enabled) {
                 this.directionalLight = new DirectionalLight(
                     directionalLightConfig.color,
                     directionalLightConfig.intensity
@@ -174,11 +175,8 @@ export default class LightManager {
                     this.pointLight.position.set(pointLightConfig.position.x, pointLightConfig.position.y, pointLightConfig.position.z);
                     this.scene.add(this.pointLight);
                     
-                    // 创建辅助球体
-                    const sphereGeometry = new SphereGeometry(0.3, 32, 32);
-                    const sphereMaterial = new MeshBasicMaterial({ color: 0x00ff00 });
-                    this.pointLightHelper = new Mesh(sphereGeometry, sphereMaterial);
-                    this.pointLightHelper.position.copy(this.pointLight.position);
+                    // 创建点光源辅助对象
+                    this.pointLightHelper = new PointLightHelper(this.pointLight, 0x00ff00);
                     this.scene.add(this.pointLightHelper);
                     this.lightHelpers.push(this.pointLightHelper);
                 } else {
@@ -229,24 +227,40 @@ export default class LightManager {
             pointFolder.add(pointLightConfig.position, 'x', -10, 10, 0.1).name('X轴位置').onChange((value) => {
                 if (this.pointLight) {
                     this.pointLight.position.x = value;
-                    if (this.pointLightHelper) this.pointLightHelper.position.x = value;
+                    if (this.pointLightHelper) {
+                        this.pointLightHelper.position.x = value;
+                        this.pointLightHelper.updateMatrix();
+                    }
+                    if (this.pointLightHelper instanceof PointLightHelper) {
+                        this.pointLightHelper.update();
+                    }
                 }
             });
             pointFolder.add(pointLightConfig.position, 'y', -10, 10, 0.1).name('Y轴位置').onChange((value) => {
                 if (this.pointLight) {
                     this.pointLight.position.y = value;
-                    if (this.pointLightHelper) this.pointLightHelper.position.y = value;
+                    if (this.pointLightHelper) {
+                        this.pointLightHelper.position.y = value;
+                        if (this.pointLightHelper instanceof PointLightHelper) {
+                            this.pointLightHelper.update();
+                        }
+                    }
                 }
             });
             pointFolder.add(pointLightConfig.position, 'z', -10, 10, 0.1).name('Z轴位置').onChange((value) => {
                 if (this.pointLight) {
                     this.pointLight.position.z = value;
-                    if (this.pointLightHelper) this.pointLightHelper.position.z = value;
+                    if (this.pointLightHelper) {
+                        this.pointLightHelper.position.z = value;
+                        if (this.pointLightHelper instanceof PointLightHelper) {
+                            this.pointLightHelper.update();
+                        }
+                    }
                 }
             });
             
             // 初始创建
-            if (pointLightConfig.enabled) {
+            if (!this.debug && pointLightConfig.enabled) {
                 this.pointLight = new PointLight(
                     pointLightConfig.color,
                     pointLightConfig.intensity,
@@ -256,10 +270,7 @@ export default class LightManager {
                 this.pointLight.position.set(pointLightConfig.position.x, pointLightConfig.position.y, pointLightConfig.position.z);
                 this.scene.add(this.pointLight);
                 
-                const sphereGeometry = new SphereGeometry(0.3, 32, 32);
-                const sphereMaterial = new MeshBasicMaterial({ color: 0x00ff00 });
-                this.pointLightHelper = new Mesh(sphereGeometry, sphereMaterial);
-                this.pointLightHelper.position.copy(this.pointLight.position);
+                this.pointLightHelper = new PointLightHelper(this.pointLight, 0x00ff00);
                 this.scene.add(this.pointLightHelper);
                 this.lightHelpers.push(this.pointLightHelper);
             }
@@ -354,7 +365,10 @@ export default class LightManager {
             spotFolder.add(spotLightConfig.position, 'x', -10, 10, 0.1).name('X轴位置').onChange((value) => {
                 if (this.spotLight) {
                     this.spotLight.position.x = value;
-                    if (this.spotLightHelper) this.spotLightHelper.update();
+                    if (this.spotLightHelper) {
+                        this.spotLightHelper.update();
+                        this.spotLightHelper.position.copy(this.spotLight.position);
+                    }
                 }
             });
             spotFolder.add(spotLightConfig.position, 'y', -10, 10, 0.1).name('Y轴位置').onChange((value) => {
@@ -371,7 +385,7 @@ export default class LightManager {
             });
             
             // 初始创建
-            if (spotLightConfig.enabled) {
+            if (!this.debug && spotLightConfig.enabled) {
                 this.spotLight = new SpotLight(
                     spotLightConfig.color,
                     spotLightConfig.intensity,
@@ -616,7 +630,7 @@ export default class LightManager {
                     config['LightManager'].directionalLight.intensity
                 );
                 // 根据配置设置方向光的位置
-                directionalLight.position.set(...config['LightManager'].directionalLight.position);
+                directionalLight.position.copy(config['LightManager'].directionalLight.position);
                 // 将方向光添加到场景中
                 this.scene.add(directionalLight);
                 
@@ -640,7 +654,7 @@ export default class LightManager {
                     config['LightManager'].pointLight.decay
                 );
                 // 根据配置设置点光源的位置
-                pointLight.position.set(...config['LightManager'].pointLight.position);
+                pointLight.position.copy(config['LightManager'].pointLight.position);
                 // 将点光源添加到场景中
                 this.scene.add(pointLight);
                 
@@ -670,9 +684,9 @@ export default class LightManager {
                     config['LightManager'].spotLight.decay
                 );
                 // 根据配置设置聚光灯的位置
-                spotLight.position.set(...config['LightManager'].spotLight.position);
+                spotLight.position.set(config['LightManager'].spotLight.position.x, config['LightManager'].spotLight.position.y, config['LightManager'].spotLight.position.z);
                 // 根据配置设置聚光灯目标的位置
-                spotLight.target.position.set(...config['LightManager'].spotLight.target);
+                spotLight.target.position.set(config['LightManager'].spotLight.target[0], config['LightManager'].spotLight.target[1], config['LightManager'].spotLight.target[2]);
                 // 将聚光灯添加到场景中
                 this.scene.add(spotLight);
                 // 将聚光灯目标添加到场景中
@@ -694,7 +708,7 @@ export default class LightManager {
                     config['LightManager'].hemiLight.groundColor,
                       config['LightManager'].hemiLight.intensity
                 );
-                hemisphereLight.position.set(...config['LightManager'].hemiLight.position);
+                hemisphereLight.position.set(config['LightManager'].hemiLight.position.x, config['LightManager'].hemiLight.position.y, config['LightManager'].hemiLight.position.z);
                 this.scene.add(hemisphereLight);
 
                 // 添加半球光方向辅助箭头
@@ -712,7 +726,7 @@ export default class LightManager {
                     config['LightManager'].rectAreaLight.width,
                     config['LightManager'].rectAreaLight.height
                 );
-                rectAreaLight.position.set(...config['LightManager'].rectAreaLight.position);
+                rectAreaLight.position.set(config['LightManager'].rectAreaLight.position.x, config['LightManager'].rectAreaLight.position.y, config['LightManager'].rectAreaLight.position.z);
                 this.scene.add(rectAreaLight);
             }
         }

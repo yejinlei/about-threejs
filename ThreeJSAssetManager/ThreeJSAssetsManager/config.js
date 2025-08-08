@@ -42,32 +42,22 @@ export default {
             intensity: 1 // 默认环境光强度 <mcreference link="https://blog.csdn.net/weixin_47970498/article/details/146376269" index="1"></mcreference>
         },
         directionalLight: {
-            enabled: true,
+            enabled: false,
             color: 0xffffff, // 默认方向光颜色：白色
             intensity: 1, // 默认方向光强度
-            position:  // 默认方向光位置
-            {
-                x: 0,
-                y: 1,
-                z: 0
-            }
+            position: {x: 0, y: 1, z: 0} // 默认方向光位置
         }, 
         // 新增矩形区域光源配置
         rectAreaLight: {
-            enabled: true, // 默认禁用
+            enabled: false, // 默认禁用
             color: 0xffffff, // 光源颜色（白色）
             intensity: 1.0, // 光照强度
             width: 10, // 光源宽度
             height: 10, // 光源高度
-            position:// 光源位置 [x, y, z]
-            {
-                x: 0,
-                y: 1,
-                z: 0
-            }
+            position: {x: 0, y: 1, z: 0} // 光源位置
         },
         hemiLight: {
-            enabled: true, // 半球光默认不启用
+            enabled: false, // 半球光默认不启用
             color: 0xffffff,
             groundColor: 0xffffff,
             intensity: 1,
@@ -78,19 +68,14 @@ export default {
             }
         },
         spotLight: {
-            enabled: true,
+            enabled: false,
             color: 0x709af3,  // 聚光灯颜色（淡蓝色）
             intensity: 1,    // 聚光灯强度
             distance: 0,     // 光照距离（0表示无限远）
             angle: 45,       // 聚光灯角度
             penumbra: 0.3,      // 聚光灯半影宽度
             decay: 2,        // 聚光灯衰减率
-            position:  // 聚光灯位置
-            {
-                x: 0,
-                y: 5,
-                z: 5
-            },
+            position: {x: 0, y: 5, z: 5}, // 聚光灯位置,
             target: [0, 0, 0],  // 聚光灯目标位置
             shadowmap: {
                 enabled: true,  // 是否启用聚光灯阴影
@@ -102,15 +87,10 @@ export default {
             }
         },
         pointLight: {
-            enabled: true, // 点光源默认不启用
+            enabled: false, // 点光源默认不启用
             color: 0xffffff,  // 点光源颜色（白色）
             intensity: 1,    // 点光源强度
-            position:  // 点光源位置
-            {
-                x: 0,
-                y: 5,
-                z: 5
-            },
+            position: {x: 0, y: 5, z: 5}, // 点光源位置,
             distance: 0,     // 光照距离（0表示无限远）
             decay: 2,     // 光照衰减率
             castShadow: false,  // 是否投射阴影
