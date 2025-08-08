@@ -543,7 +543,7 @@ export default class LightManager {
                 this.scene.add(this.pointLight);
 
                 // 创建点光源辅助对象
-                this.pointLightHelper = new PointLightHelper(this.pointLight, 0x00ff00);
+                this.pointLightHelper = new PointLightHelper(this.pointLight, 1);
                 this.scene.add(this.pointLightHelper);
                 this.lightHelpers.push(this.pointLightHelper);
             } else {
