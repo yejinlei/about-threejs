@@ -2,6 +2,7 @@
 // 参考: Three.js官方构造函数默认值及核心组件规范
 
 export default {
+    'canvas': 'canvas01',
     'SceneManager': {
         enabled: true,
         Color: {
