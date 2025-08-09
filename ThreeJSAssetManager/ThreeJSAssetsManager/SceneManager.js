@@ -1,4 +1,5 @@
 //import * as THREE from 'https://gcore.jsdelivr.net/npm/three@0.132.2/build/three.min.js'
+import { Scene, Fog, Color, SRGBColorSpace } from 'three'
 import threeJSAssetsManager from './ThreeJSAssetsManager.js'
 import config from './config.js'
 /**
@@ -19,7 +20,7 @@ export default class SceneManager {
 
     this.cavas = cavas;
 
-    this.scene = new THREE.Scene();
+    this.scene = new Scene();
     this.confScene();
     this.confGUI();
     this.modelVisibility = {}; // 模型可见性状态
@@ -60,14 +61,14 @@ export default class SceneManager {
     // 背景颜色
     if (sceneConfig.Color.enabled) {
       console.log(sceneConfig.Color.value);
-      this.scene.background = new THREE.Color(sceneConfig.Color.value);
+      this.scene.background = new Color(sceneConfig.Color.value);
     } else {
-      this.scene.background = new THREE.Color(0xffffff);
+      this.scene.background = new Color(0xffffff);
     }
 
     // 雾效果
     if (sceneConfig.fog.enabled) {
-      this.scene.fog = new THREE.Fog(sceneConfig.fog.color, sceneConfig.fog.near, sceneConfig.fog.far);
+      this.scene.fog = new Fog(sceneConfig.fog.color, sceneConfig.fog.near, sceneConfig.fog.far);
     }
 
     // // 环境光
@@ -86,14 +87,14 @@ export default class SceneManager {
   {
     if (this.debug && this.gui) 
     {
-      if (!this.scene) this.scene = new THREE.Scene();
+      if (!this.scene) this.scene = new Scene();
       this.debugFolder = this.gui.addFolder('SceneManager(场景管理)');
 
       // 确保场景属性存在
-      if (!this.scene.background) this.scene.background = new THREE.Color(0xffffff);
-      if (!this.scene.fog) this.scene.fog = new THREE.Fog(0xcccccc, 10, 50);
-      if (this.scene.fog && !this.scene.fog.color) this.scene.fog.color = new THREE.Color(0xcccccc);
-      if (!this.scene.environment) this.scene.environment = new THREE.Color(0xffffff);
+      if (!this.scene.background) this.scene.background = new Color(0xffffff);
+      if (!this.scene.fog) this.scene.fog = new Fog(0xcccccc, 10, 50);
+      if (this.scene.fog && !this.scene.fog.color) this.scene.fog.color = new Color(0xcccccc);
+      if (!this.scene.environment) this.scene.environment = new Color(0xffffff);
 
       // 背景颜色控制
       const bgFolder = this.debugFolder.addFolder('Background');
@@ -117,6 +118,7 @@ export default class SceneManager {
         });
         fogFolder.add(this.scene.fog, 'near').name('近距离');
         fogFolder.add(this.scene.fog, 'far').name('远距离');
+        fogFolder.close();
       }
 
       // 环境光控制
@@ -130,7 +132,7 @@ export default class SceneManager {
             this.scene.environment = null;
             console.log('环境光已禁用');
           } else {
-            this.scene.environment = new THREE.Color(0xffffff);
+            this.scene.environment = new Color(0xffffff);
             console.log('使用灰色环境光');
           }
         }

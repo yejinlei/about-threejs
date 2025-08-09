@@ -1,4 +1,5 @@
-import { WebGLRenderer } from 'three';
+import { WebGLRenderer, Color, SRGBColorSpace, CineonToneMapping, PCFSoftShadowMap } from 'three';
+//import { ColorSpace} from 'three/src/enums/ColorSpace.js';
 import ThreeJSAssetsManager from './ThreeJSAssetsManager.js'
 import Sizes from "./Utils/Sizes.js";
 import config from './config.js';
@@ -20,14 +21,14 @@ export default class RenderManager {
 
         // 基础渲染器配置
         this.webGLRenderer.physicallyCorrectLights = true;
-        this.webGLRenderer.outputEncoding = THREE.sRGBEncoding;
+        this.webGLRenderer.outputColorSpace = SRGBColorSpace;
         
         // 应用config配置
-        this.webGLRenderer.toneMapping = config.RenderManager?.toneMapping || THREE.CineonToneMapping;
+        this.webGLRenderer.toneMapping = config.RenderManager?.toneMapping || CineonToneMapping;
         this.webGLRenderer.toneMappingExposure = config.RenderManager?.toneMappingExposure || 1.75;
         this.webGLRenderer.shadowMap.enabled = config.RenderManager?.shadowMap?.enabled || true;
-        this.webGLRenderer.shadowMap.type = config.RenderManager?.shadowMap?.type || THREE.PCFSoftShadowMap;
-        this.webGLRenderer.setClearColor(config.RenderManager?.clearColor || '#211d20');
+        this.webGLRenderer.shadowMap.type = config.RenderManager?.shadowMap?.type || PCFSoftShadowMap;
+        this.webGLRenderer.setClearColor(new Color(config.RenderManager?.clearColor || '#211d20'));
         
         // 设置渲染器尺寸
         this.webGLRenderer.setSize(this.sizes.width, this.sizes.height);
@@ -51,7 +52,13 @@ export default class RenderManager {
       setupDebugGUI() {
         const rendererFolder = this.gui.addFolder('Renderer(渲染管理)');
         rendererFolder.add(this.webGLRenderer, 'toneMappingExposure').min(0).max(5).step(0.01).name('曝光度');
-        rendererFolder.addColor(this.webGLRenderer, 'clearColor').name('背景色');
+        
+        // 创建一个颜色对象用于调试
+        const bgColor = { value: '#211d20' };
+        rendererFolder.addColor(bgColor, 'value').name('背景色').onChange((color) => {
+          this.webGLRenderer.setClearColor(new Color(color));
+        });
+        
         rendererFolder.add(this.webGLRenderer.shadowMap, 'enabled').name('阴影映射');
         rendererFolder.close();
       }

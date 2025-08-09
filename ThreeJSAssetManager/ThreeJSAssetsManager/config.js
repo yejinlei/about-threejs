@@ -110,6 +110,7 @@ export default {
     },
     'RenderManager': {
         enabled: true,
+        clearColor: '#211d20', // 添加背景色配置
         postprocessing: {
             enabled: false, // 后处理默认禁用
             antialias: false, // 抗锯齿默认关闭 <mcreference link="https://blog.csdn.net/weixin_34085658/article/details/88838650" index="3"></mcreference>

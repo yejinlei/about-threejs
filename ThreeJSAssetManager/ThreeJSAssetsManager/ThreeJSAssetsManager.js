@@ -1,5 +1,5 @@
 // 从 CDN 导入 Three.js 库的所有导出内容，并将其绑定到 THREE 对象上
-import * as THREE from 'https://gcore.jsdelivr.net/npm/three@0.132.2/build/three.min.js'
+import * as THREE from 'https://gcore.jsdelivr.net/npm/three@0.165.0/build/three.module.js'
 
 // 导入调试 UI 实例模块
 import debuguiInstance from './DebugUI.js'
