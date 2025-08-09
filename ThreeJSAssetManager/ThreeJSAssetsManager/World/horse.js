@@ -138,6 +138,7 @@ export default class Horse {
       if (!this.modelConfig.position) this.modelConfig.position = {};
       this.modelConfig.position.z = this.model.position.z;
     });
+    positionFolder.close();
 
     // 旋转控制
     const rotationFolder = this.debugFolder.addFolder('Rotation');
@@ -153,6 +154,7 @@ export default class Horse {
       if (!this.modelConfig.rotation) this.modelConfig.rotation = {};
       this.modelConfig.rotation.z = this.model.rotation.z;
     });
+    rotationFolder.close();
 
     // 缩放控制
     const scaleFolder = this.debugFolder.addFolder('Scale');
@@ -184,6 +186,7 @@ export default class Horse {
       }
       this.modelConfig.scale.x = this.model.scale.x;
     });
+    
   
     scaleAxes.add(this.model.scale, 'y', 0.01, 1, 0.01).name('Y').onChange(() => {
       if (typeof this.modelConfig.scale === 'number') {
@@ -212,6 +215,8 @@ export default class Horse {
       }
       this.modelConfig.scale.z = this.model.scale.z;
     });
+
+    scaleFolder.close();
   }
 
   setAnimation() {
