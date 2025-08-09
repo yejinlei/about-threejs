@@ -2,69 +2,77 @@ import { BoxGeometry, MeshBasicMaterial, MeshStandardMaterial, Mesh, PlaneGeomet
 
 import ThreeJSAssetsManager from "../ThreeJSAssetsManager.js";
 
-export default class worldManager
+import Horse from "./Horse.js";
+
+export default class WorldManager
 {
     constructor()
     {
         this.threejsassetsmanagerInstance = new ThreeJSAssetsManager();
         this.scene = this.threejsassetsmanagerInstance.scene;
         this.geometries = {}; // 存储已创建的几何体
+
+        // 等待资源加载完成后再创建Horse实例
+        this.threejsassetsmanagerInstance.resources.on('ready', () => {
+            this.horse = new Horse('Horse');
+        });
         
         // 测试用
-        if (!this.geometries['box1']) {
-            const geometry1 = new BoxGeometry( 1, 1, 1 ); 
-            const material = new MeshBasicMaterial( {color: 0xffff00} ); 
-            const cube = new Mesh( geometry1, material ); 
-            this.scene.add(cube);
-            this.geometries['box1'] = cube;
-        }
+        // if (!this.geometries['box1']) {
+        //     const geometry1 = new BoxGeometry( 1, 1, 1 ); 
+        //     const material = new MeshBasicMaterial( {color: 0xffff00} ); 
+        //     const cube = new Mesh( geometry1, material ); 
+        //     this.scene.add(cube);
+        //     this.geometries['box1'] = cube;
+        // }
         
-        // 添加平面几何体
-        const planeGeometry = new PlaneGeometry(50, 50);
-        const planeMaterial = new MeshStandardMaterial({ color: 0x777777 });
-        const plane = new Mesh(planeGeometry, planeMaterial);
-        plane.rotation.x = -Math.PI / 2;
-        plane.position.y = -1;
-        this.scene.add(plane);
+        // // 添加平面几何体
+        // const planeGeometry = new PlaneGeometry(50, 50);
+        // const planeMaterial = new MeshStandardMaterial({ color: 0x777777 });
+        // const plane = new Mesh(planeGeometry, planeMaterial);
+        // plane.rotation.x = -Math.PI / 2;
+        // plane.position.y = -1;
+        // this.scene.add(plane);
 
-        // 添加球体
-        const sphereGeometry = new SphereGeometry(0.5, 32, 32);
-        const sphereMaterial = new MeshStandardMaterial({ color: 0xff0000 });
-        const sphere = new Mesh(sphereGeometry, sphereMaterial);
-        sphere.position.set(2, 0, 0);
-        this.scene.add(sphere);
+        // // 添加球体
+        // const sphereGeometry = new SphereGeometry(0.5, 32, 32);
+        // const sphereMaterial = new MeshStandardMaterial({ color: 0xff0000 });
+        // const sphere = new Mesh(sphereGeometry, sphereMaterial);
+        // sphere.position.set(2, 0, 0);
+        // this.scene.add(sphere);
 
-        // 添加圆柱体
-        const cylinderGeometry = new CylinderGeometry(0.5, 0.5, 1, 32);
-        const cylinderMaterial = new MeshStandardMaterial({ color: 0x00ff00 });
-        const cylinder = new Mesh(cylinderGeometry, cylinderMaterial);
-        cylinder.position.set(-2, 0, 0);
-        this.scene.add(cylinder);
+        // // 添加圆柱体
+        // const cylinderGeometry = new CylinderGeometry(0.5, 0.5, 1, 32);
+        // const cylinderMaterial = new MeshStandardMaterial({ color: 0x00ff00 });
+        // const cylinder = new Mesh(cylinderGeometry, cylinderMaterial);
+        // cylinder.position.set(-2, 0, 0);
+        // this.scene.add(cylinder);
 
-        // 添加圆锥体
-        const coneGeometry = new ConeGeometry(0.5, 1, 32);
-        const coneMaterial = new MeshStandardMaterial({ color: 0x0000ff });
-        const cone = new Mesh(coneGeometry, coneMaterial);
-        cone.position.set(0, 0, 2);
-        this.scene.add(cone);
+        // // 添加圆锥体
+        // const coneGeometry = new ConeGeometry(0.5, 1, 32);
+        // const coneMaterial = new MeshStandardMaterial({ color: 0x0000ff });
+        // const cone = new Mesh(coneGeometry, coneMaterial);
+        // cone.position.set(0, 0, 2);
+        // this.scene.add(cone);
 
-        // 添加圆环体
-        const torusGeometry = new TorusGeometry(0.5, 0.2, 16, 100);
-        const torusMaterial = new MeshStandardMaterial({ color: 0xffff00 });
-        const torus = new Mesh(torusGeometry, torusMaterial);
-        torus.position.set(0, 0, -2);
-        this.scene.add(torus);
+        // // 添加圆环体
+        // const torusGeometry = new TorusGeometry(0.5, 0.2, 16, 100);
+        // const torusMaterial = new MeshStandardMaterial({ color: 0xffff00 });
+        // const torus = new Mesh(torusGeometry, torusMaterial);
+        // torus.position.set(0, 0, -2);
+        // this.scene.add(torus);
 
-        // 添加二十面体
-        const icosahedronGeometry = new IcosahedronGeometry(0.5, 0);
-        const icosahedronMaterial = new MeshStandardMaterial({ color: 0xff00ff });
-        const icosahedron = new Mesh(icosahedronGeometry, icosahedronMaterial);
-        icosahedron.position.set(2, 0, 2);
-        this.scene.add(icosahedron);
+        // // 添加二十面体
+        // const icosahedronGeometry = new IcosahedronGeometry(0.5, 0);
+        // const icosahedronMaterial = new MeshStandardMaterial({ color: 0xff00ff });
+        // const icosahedron = new Mesh(icosahedronGeometry, icosahedronMaterial);
+        // icosahedron.position.set(2, 0, 2);
+        // this.scene.add(icosahedron);
     }
 
     update() {
-        // TODO
+        if (this.horse)
+            this.horse.update();
     }
 
     // 创建并添加所有几何体

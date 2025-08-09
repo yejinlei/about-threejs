@@ -1,5 +1,5 @@
 //import * as THREE from 'https://gcore.jsdelivr.net/npm/three@0.132.2/build/three.min.js'
-import { Scene, Fog, Color, SRGBColorSpace } from 'three'
+import { Scene, Fog, Color, Group, SRGBColorSpace } from 'three'
 import threeJSAssetsManager from './ThreeJSAssetsManager.js'
 import config from './config.js'
 /**
@@ -21,6 +21,9 @@ export default class SceneManager {
     this.cavas = cavas;
 
     this.scene = new Scene();
+    this.mainGroup = new Group();
+    this.mainGroup.name = 'MainGroup';
+    this.scene.add(this.mainGroup);
     this.confScene();
     this.confGUI();
     this.modelVisibility = {}; // 模型可见性状态
