@@ -102,7 +102,7 @@ export default class SceneManager {
         value: this.scene.background ? this.scene.background.getHex() : 0xffffff
       };
       bgFolder.addColor(bgColor, 'value').name('背景色').onChange((val) => {
-        this.scene.background = new THREE.Color(val);
+        this.scene.background = new Color(val);
         console.log('config:this.scene.background', val.toString(16));
       });
 
@@ -113,7 +113,7 @@ export default class SceneManager {
           value: this.scene.fog.color.getHex()
         };
         fogFolder.addColor(fogColor, 'value').name('雾颜色').onChange((val) => {
-          this.scene.fog.color = new THREE.Color(val);
+          this.scene.fog.color = new Color(val);
           console.log('config:this.scene.fog.color', val.toString(16));
         });
         fogFolder.add(this.scene.fog, 'near').name('近距离');
