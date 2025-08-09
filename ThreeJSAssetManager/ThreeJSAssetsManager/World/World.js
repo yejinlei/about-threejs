@@ -2,8 +2,7 @@ import { BoxGeometry, MeshBasicMaterial, MeshStandardMaterial, Mesh, PlaneGeomet
 
 import ThreeJSAssetsManager from "../ThreeJSAssetsManager.js";
 
-import Horse from "./Horse.js";
-
+import Horse from "./horse.js";
 export default class WorldManager
 {
     constructor()
