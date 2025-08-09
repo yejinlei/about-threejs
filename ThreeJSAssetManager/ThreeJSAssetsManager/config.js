@@ -128,6 +128,6 @@ export default {
         }
     },
     'DebugUI': {
-        enabled: true
+        enabled: false
     }
 }
