@@ -18,15 +18,6 @@ export default class worldManager
             this.scene.add(cube);
             this.geometries['box1'] = cube;
         }
-
-        if (!this.geometries['box2']) {
-            const geometry2 = new BoxGeometry( 1, 1, 1 ); 
-            const materia2 = new MeshStandardMaterial( {color: 0x00ff00} ); 
-            const cube2 = new Mesh( geometry2, materia2 ); 
-            this.scene.add(cube2);
-            cube2.position.set(0,0,2);
-            this.geometries['box2'] = cube2;
-        }
         
         // 添加平面几何体
         const planeGeometry = new PlaneGeometry(50, 50);
