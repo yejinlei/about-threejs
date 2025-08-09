@@ -135,7 +135,7 @@ export default class LightManager {
     // 矩形区域光配置
     setupRectAreaLightGUI(folder) {
         const rectAreaLightConfig = config['LightManager'].rectAreaLight;
-        const rectAreaFolder = folder.addFolder('矩形区域光');
+        const rectAreaFolder = folder.addFolder('矩形区域光(模拟明亮窗户/条状灯光)');
 
         // 启用控制
         rectAreaFolder.add(rectAreaLightConfig, 'enabled').name('启用').onChange((value) => {
@@ -516,7 +516,7 @@ export default class LightManager {
 
     setupPointLightGUI(folder) {
         const pointLightConfig = config['LightManager'].pointLight;
-        const pointFolder = folder.addFolder('点光源');
+        const pointFolder = folder.addFolder('点光源(模拟灯泡)');
 
         // 启用控制
         pointFolder.add(pointLightConfig, 'enabled').name('启用').onChange((value) => {
@@ -637,7 +637,7 @@ export default class LightManager {
 
     setupDirectionalLightGUI(folder) {
         const directionalLightConfig = config['LightManager'].directionalLight;
-        const directionalFolder = folder.addFolder('方向光');
+        const directionalFolder = folder.addFolder('方向光(模拟太阳光)');
         directionalFolder.add(directionalLightConfig, 'enabled').name('启用').onChange((value) => {
             if (value) {
                 // 创建方向光
