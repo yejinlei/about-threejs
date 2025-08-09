@@ -28,10 +28,22 @@ export default class Resources extends EventEmitter {
 
   setLoaders() {
     this.loaders = {};
+    
+    // 创建一个共享的 DRACOLoader 实例
+    const dracoLoader = new DRACOLoader();
+    // 使用 CDN 上的 Draco 解码器
+    dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
+    // 可选：设置为使用 JS 解码器而不是 WASM (如果 WASM 有问题)
+    // dracoLoader.setDecoderConfig({ type: 'js' });
+    
+    // 为 gltfLoader 设置 DRACOLoader
     this.loaders.gltfLoader = new GLTFLoader();
+    this.loaders.gltfLoader.setDRACOLoader(dracoLoader);
 
+    // 为 glbLoader 设置相同的 DRACOLoader 实例
     this.loaders.glbLoader = new GLTFLoader();
-    this.loaders.glbLoader.setDRACOLoader(new DRACOLoader().setDecoderPath('./js/libs/'));  
+    this.loaders.glbLoader.setDRACOLoader(dracoLoader);
+    
     this.loaders.textureLoader = new TextureLoader();
     this.loaders.cubeTextureLoader = new CubeTextureLoader();
   }
