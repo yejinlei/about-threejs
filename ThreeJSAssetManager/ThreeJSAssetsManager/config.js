@@ -127,6 +127,6 @@ export default {
         }
     },
     'DebugUI': {
-        enabled: false
+        enabled: true
     }
 }
