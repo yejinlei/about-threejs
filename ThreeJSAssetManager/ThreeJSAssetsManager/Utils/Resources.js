@@ -9,11 +9,6 @@ export default class Resources extends EventEmitter {
   constructor(sources) {
     super();
 
-    this.threeJSAssetsManagerInstance = new ThreeJSAssetsManager();
-    this.scene = this.threeJSAssetsManagerInstance.scene;
-    this.mainGroup = this.threeJSAssetsManagerInstance.mainGroup;
-    console.log(this.mainGroup);
-
     // Options
     this.sources = sources;
 
@@ -91,10 +86,6 @@ export default class Resources extends EventEmitter {
         });
       }
     }
-
-    this.scene.traverse((node) => {
-      console.log(node.name);
-    }); 
   }
 
 

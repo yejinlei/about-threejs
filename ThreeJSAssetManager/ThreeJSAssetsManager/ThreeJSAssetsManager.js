@@ -56,17 +56,16 @@ export default class ThreeJSAssetsManager
     this.debug = this.debuguiinstance.debug;
     this.gui = this.debuguiinstance.gui;
 
+    // 初始化资源管理器
+    this.resources = new Resources(sources);
     // 初始化场景管理器并获取场景对象
     this.sceneManagerinstance = new SceneManager(this.canvas);
     this.scene = this.sceneManagerinstance.scene
     this.mainGroup = this.sceneManagerinstance.mainGroup;
     // 初始化灯光管理器
     this.lightManagerInstance = new LightManager();
-
-    // 初始化资源管理器
-    this.resources = new Resources(sources);
     // 初始化世界渲染实例
-    this.worldRenderInstance = new MeshManager();
+    this.meshManagerInstance = new MeshManager();
 
     // 初始化窗口尺寸管理器和时间管理器
     this.sizes = new Sizes();
@@ -112,7 +111,7 @@ export default class ThreeJSAssetsManager
     // 调用相机管理器的 update 方法更新相机状态
     this.cameraManagerInstance.update();
     // 调用世界渲染实例的 update 方法更新世界状态
-    this.worldRenderInstance.update();
+    this.meshManagerInstance.update();
     // 调用渲染管理器的 update 方法更新渲染内容
     this.renderManagerInstance.update();
   }
