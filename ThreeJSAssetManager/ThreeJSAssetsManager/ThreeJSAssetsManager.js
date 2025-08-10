@@ -22,7 +22,7 @@ import sources from './World/sources.js'
 import Resources from './Utils/Resources.js'
 
 // 导入世界管理模块
-import WorldManager from './World/World.js'
+import MeshManager from './MeshManager.js'
 
 // 单例模式的实例变量，初始化为 null
 let instance = null;
@@ -66,7 +66,7 @@ export default class ThreeJSAssetsManager
     // 初始化资源管理器
     this.resources = new Resources(sources);
     // 初始化世界渲染实例
-    this.worldRenderInstance = new WorldManager();
+    this.worldRenderInstance = new MeshManager();
 
     // 初始化窗口尺寸管理器和时间管理器
     this.sizes = new Sizes();
