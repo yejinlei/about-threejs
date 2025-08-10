@@ -54,24 +54,23 @@ export default class SceneManager {
   }
 
   confScene() {
-    const sceneConfig = config['SceneManager'] || {};
   
-    if(!sceneConfig.enabled)
+    if(!(config['SceneManager'] || {}).enabled)
       return; 
 
 
-    console.log('SceneManager:confScene函数，配置：',sceneConfig);
+    console.log('SceneManager:confScene函数，配置：',(config['SceneManager'] || {}));
     // 背景颜色
-    if (sceneConfig.Color.enabled) {
-      console.log(sceneConfig.Color.value);
-      this.scene.background = new Color(sceneConfig.Color.value);
+    if ((config['SceneManager'] || {}).Color.enabled) {
+      console.log((config['SceneManager'] || {}).Color.value);
+      this.scene.background = new Color((config['SceneManager'] || {}).Color.value);
     } else {
       this.scene.background = new Color(0xffffff);
     }
 
     // 雾效果
-    if (sceneConfig.fog.enabled) {
-      this.scene.fog = new Fog(sceneConfig.fog.color, sceneConfig.fog.near, sceneConfig.fog.far);
+    if ((config['SceneManager'] || {}).fog.enabled) {
+      this.scene.fog = new Fog((config['SceneManager'] || {}).fog.color, (config['SceneManager'] || {}).fog.near, (config['SceneManager'] || {}).fog.far);
     }
 
     // // 环境光
@@ -106,11 +105,20 @@ export default class SceneManager {
       };
       bgFolder.addColor(bgColor, 'value').name('背景色').onChange((val) => {
         this.scene.background = new Color(val);
-        console.log('config:this.scene.background', val.toString(16));
+        console.log('config:this.scene.background', val.toString(16));  
+      });
+
+      // 雾效启用 
+      const fogFolder = this.debugFolder.addFolder('Fog(雾效)');
+      fogFolder.add(config['SceneManager'].fog, 'enabled').name('启用').onChange(value => {
+        if (value) {
+          this.scene.fog = new Fog(config['SceneManager'].fog.color, config['SceneManager'].fog.near, (config['SceneManager'].fog.far));
+        } else {
+          this.scene.fog = null;
+        }
       });
 
       // 雾效果控制
-      const fogFolder = this.debugFolder.addFolder('Fog(雾效)');
       if (this.scene.fog) {
         const fogColor = {
           value: this.scene.fog.color.getHex()
