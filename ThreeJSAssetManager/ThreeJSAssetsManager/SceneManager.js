@@ -129,7 +129,6 @@ export default class SceneManager {
         });
         fogFolder.add(this.scene.fog, 'near').name('近距离');
         fogFolder.add(this.scene.fog, 'far').name('远距离');
-        fogFolder.close();
       }
 
       // 环境光控制
@@ -151,7 +150,7 @@ export default class SceneManager {
 
       // 默认展开部分文件夹
       bgFolder.open();
-      fogFolder.open();
+      fogFolder.close();
     }
   }
 
