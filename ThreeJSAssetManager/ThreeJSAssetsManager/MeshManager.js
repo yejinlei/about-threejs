@@ -9,9 +9,16 @@ export default class MeshManager
     {
         this.threejsassetsmanagerInstance = new ThreeJSAssetsManager();
         this.scene = this.threejsassetsmanagerInstance.scene;
-        this.geometries = {}; // 存储已创建的几何体
         this.resources = this.threejsassetsmanagerInstance.resources;
+        this.debug = this.threejsassetsmanagerInstance.debug;
+        this.gui = this.threejsassetsmanagerInstance.gui;
+        this.geometries = this.threejsassetsmanagerInstance.geometries;
         this.horses = [];
+
+        if(this.debug && this.gui)
+        {
+            this.gui.meshFolder = this.gui.addFolder('MeshManager(网格管理)');
+        }
 
         // 等待资源加载完成后再创建Horse实例
         this.resources.on('ready', () => {

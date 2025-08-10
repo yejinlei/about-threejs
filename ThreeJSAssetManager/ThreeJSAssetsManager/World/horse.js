@@ -23,8 +23,11 @@ export default class Horse {
     this.modelName = name;
 
     // Debug
-    if (this.debug) {
-      this.debugFolder = this.gui.addFolder(name);
+    if (this.debug && this.gui) {
+      if(this.gui.meshFolder !== undefined)
+      {
+        this.debugFolder = this.gui.meshFolder.addFolder(this.modelName);
+      }
     }
 
     // Setup - 直接使用resources.Horse获取模型
