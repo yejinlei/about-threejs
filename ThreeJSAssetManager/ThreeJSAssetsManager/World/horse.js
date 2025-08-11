@@ -7,6 +7,7 @@ export default class Horse {
     this.threejsassetsmanagerInstance = new ThreeJSAssetsManager();
     // 从管理器实例中获取场景对象
     this.scene = this.threejsassetsmanagerInstance.scene;
+    this.glbmaingroup = this.scene.children.find(object => object.name ===  'GLBMainGroup');
     // 从管理器实例中获取调试模式标志
     this.debug = this.threejsassetsmanagerInstance.debug;
     // 从管理器实例中获取资源、时间、尺寸和GUI对象
@@ -108,8 +109,8 @@ export default class Horse {
       this.modelConfig.rotation = { x: 0, y: 0, z: 0 };
     }
     
-    // 添加到场景
-    this.scene.add(this.model);
+    // 添加到场景的GLB主分组GLBMainGroup
+    this.glbmaingroup.add(this.model);
 
     // 设置阴影
     this.model.traverse((child) => {

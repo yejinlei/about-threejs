@@ -22,7 +22,8 @@ export default class SceneManager {
 
     this.scene = new Scene();
     this.mainGroup = new Group();
-    this.mainGroup.name = 'MainGroup';
+    // GLB根部节点，便于添加glb模型场景到主场景组
+    this.mainGroup.name = 'GLBMainGroup';
     this.scene.add(this.mainGroup);
     this.confScene();
     this.confGUI();

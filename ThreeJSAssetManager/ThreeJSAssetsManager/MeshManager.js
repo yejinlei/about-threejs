@@ -21,6 +21,7 @@ export default class MeshManager
         this.threejsassetsmanagerInstance = new ThreeJSAssetsManager();
         // 从管理器实例中获取场景对象
         this.scene = this.threejsassetsmanagerInstance.scene;
+
         // 从管理器实例中获取资源对象
         this.resources = this.threejsassetsmanagerInstance.resources;
         // 从管理器实例中获取调试模式标志
@@ -31,13 +32,6 @@ export default class MeshManager
         this.geometries = this.threejsassetsmanagerInstance.geometries;
         // 初始化一个数组，用于存储 Horse 实例
         this.horses = [];
-
-        // 如果处于调试模式且 GUI 对象存在
-        if(this.debug && this.gui)
-        {
-            // 在 GUI 中添加一个名为 'MeshManager(网格管理)' 的文件夹
-            this.gui.meshFolder = this.gui.addFolder('MeshManager(网格管理)');
-        }
 
         // 等待资源加载完成后执行回调函数
         this.resources.on('ready', () => {
@@ -52,6 +46,78 @@ export default class MeshManager
                 }
             })
         });
+        // 从管理器实例中获取场景中的 GLBMainGroup 对象
+        this.glbmaingroup = this.scene.children.find(object => object.name ===  'GLBMainGroup');
+        console.log(this.scene);
+
+        // 如果处于调试模式且 GUI 对象存在
+        if(this.debug && this.gui)
+        {
+            // 在 GUI 中添加一个名为 'MeshManager(网格管理)' 的文件夹
+            this.gui.meshFolder = this.gui.addFolder('MeshManager(网格管理)');
+
+            // 添加测试功能的文件夹
+            const searchFilterFolder = this.gui.meshFolder.addFolder('功能:查找和过滤');
+
+            // 添加获取 glb 模型树的控件
+            const glbModelTreeFolder = searchFilterFolder.addFolder('获取 GLB 模型树');
+            const glbModelTreeParams = {
+                glbName: '',
+                getTree: () => {
+                    // 确保 this 指向 MeshManager 实例
+                    const tree = this.getGlbModelTree(glbModelTreeParams.glbName);
+                    if (tree) {
+                        console.log('GLB 模型树:', tree);
+                    } else {
+                        console.log('未找到对应的 GLB 模型树');
+                    }
+                }
+            };
+            glbModelTreeFolder.add(glbModelTreeParams, 'glbName').name('GLB 名称');
+            glbModelTreeFolder.add(glbModelTreeParams, 'getTree').name('获取模型树');
+
+            // 添加获取 glb 中 mesh 集合的控件
+            const glbMeshesFolder = searchFilterFolder.addFolder('获取 GLB 中的 Mesh 集合');
+            const glbMeshesParams = {
+                glbName: '',
+                meshName: '',
+                isRegex: false,
+                showOnly: false,
+                getMeshes: () => {
+                    const meshes = this.getMeshesInGlb(glbMeshesParams.glbName, glbMeshesParams.meshName, glbMeshesParams.isRegex, glbMeshesParams.showOnly);
+                    if (meshes.length > 0) {
+                        console.log('GLB 中的 Mesh 集合:', meshes);
+                    } else {
+                        console.log('未找到对应的 Mesh 集合');
+                    }
+                }
+            };
+            glbMeshesFolder.add(glbMeshesParams, 'glbName').name('GLB 名称');
+            glbMeshesFolder.add(glbMeshesParams, 'meshName').name('Mesh 名称');
+            glbMeshesFolder.add(glbMeshesParams, 'isRegex').name('使用正则匹配');
+            glbMeshesFolder.add(glbMeshesParams, 'showOnly').name('只显示找到的 Mesh');
+            glbMeshesFolder.add(glbMeshesParams, 'getMeshes').name('获取 Mesh 集合');
+
+            // 添加获取场景中 mesh 集合的控件
+            const sceneMeshesFolder = searchFilterFolder.addFolder('获取场景中的 Mesh 集合');
+            const sceneMeshesParams = {
+                meshName: '',
+                isRegex: false,
+                showOnly: false,
+                getMeshes: () => {
+                    const meshes = this.getMeshesInScene(sceneMeshesParams.meshName, sceneMeshesParams.isRegex, sceneMeshesParams.showOnly);
+                    if (meshes.length > 0) {
+                        console.log('场景中的 Mesh 集合:', meshes);
+                    } else {
+                        console.log('未找到对应的 Mesh 集合');
+                    }
+                }
+            };
+            sceneMeshesFolder.add(sceneMeshesParams, 'meshName').name('Mesh 名称');
+            sceneMeshesFolder.add(sceneMeshesParams, 'isRegex').name('使用正则匹配');
+            sceneMeshesFolder.add(sceneMeshesParams, 'showOnly').name('只显示找到的 Mesh');
+            sceneMeshesFolder.add(sceneMeshesParams, 'getMeshes').name('获取 Mesh 集合');
+        }
         
         // 测试用代码，创建一个立方体并添加到场景中
         // if (!this.geometries['box1']) {
@@ -105,6 +171,105 @@ export default class MeshManager
         // const icosahedron = new Mesh(icosahedronGeometry, icosahedronMaterial);
         // icosahedron.position.set(2, 0, 2);
         // this.scene.add(icosahedron);
+    }
+
+    /**
+     * 通过传入 glb 名，返回整个 glb 的模型树。
+     * @param {string} glbName - glb 模型的名称。
+     * @returns {Object|null} - glb 模型树，如果未找到则返回 null。
+     */
+    getGlbModelTree(glbName, showOnly = false) {
+        const glbResource = this.resources.items[glbName];
+        if (glbResource && glbResource.scene) {
+            return glbResource.scene;
+        }
+        return null;
+    }
+
+    /**
+     * 通过传入 glb 名和 mesh 名，正则、完全匹配，返回这个 glb 中找到的 mesh 集合。
+     * @param {string} glbName - glb 模型的名称。
+     * @param {string} meshName - 要查找的 mesh 名称，可以是正则表达式或完全匹配的字符串。
+     * @param {boolean} [isRegex=false] - 是否使用正则表达式匹配，默认为 false。
+     * @param {boolean} [showOnly=false] - 如果为 true，则只显示找到的 mesh，隐藏其他 mesh。默认为 false。
+     * @returns {Array<Mesh>} - 找到的 mesh 集合。
+     */
+    getMeshesInGlb(glbName, meshName, isRegex = false, showOnly = false) {
+        const glbModel = this.getGlbModelTree(glbName);
+        const meshes = [];
+
+        if (glbModel) {
+            if (showOnly) {
+                // 先隐藏 glb 模型中的所有 mesh
+                glbModel.traverse((child) => {
+                    if (child.isMesh) {
+                        child.visible = false;
+                    }
+                });
+            }
+
+            glbModel.traverse((child) => {
+                if (child.isMesh) {
+                    if (isRegex) {
+                        const regex = new RegExp(meshName);
+                        if (regex.test(child.name)) {
+                            meshes.push(child);
+                            if (showOnly) {
+                                child.visible = true;
+                            }
+                        }
+                    } else if (child.name === meshName) {
+                        meshes.push(child);
+                        if (showOnly) {
+                            child.visible = true;
+                        }
+                    }
+                }
+            });
+        }
+
+        return meshes;
+    }
+
+    /**
+     * 通过传入 mesh 名，正则、完全匹配，返回整个场景中找到的 mesh 集合。
+     * @param {string} meshName - 要查找的 mesh 名称，可以是正则表达式或完全匹配的字符串。
+     * @param {boolean} [isRegex=false] - 是否使用正则表达式匹配，默认为 false。
+     * @param {boolean} [showOnly=false] - 如果为 true，则只显示找到的 mesh，隐藏其他 mesh。默认为 false。
+     * @returns {Array<Mesh>} - 找到的 mesh 集合。
+     */
+    getMeshesInScene(meshName, isRegex = false, showOnly = false) {
+        const meshes = [];
+
+        if (showOnly) {
+            // 先隐藏场景中的所有 mesh
+            this.glbmaingroup.traverse((child) => {
+                if (child.isMesh) {
+                    child.visible = false;
+                }
+            });
+        }
+
+        this.glbmaingroup.traverse((child) => {
+            if (child.isMesh) {
+                if (isRegex) {
+                    const regex = new RegExp(meshName);
+                    if (regex.test(child.name)) {
+                        meshes.push(child);
+                        if (showOnly) {
+                            child.visible = true;
+                        }
+                    }
+                } else if (child.name === meshName) {
+                    meshes.push(child);
+                    if (showOnly) {
+                        child.visible = true;
+                    }
+                }
+            }
+        });
+
+        return meshes;
     }
 
     /**
