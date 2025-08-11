@@ -1,4 +1,5 @@
-import { TextureLoader, CubeTextureLoader }from 'three';
+import { TextureLoader, CubeTextureLoader, EquirectangularReflectionMapping }from 'three';
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import ThreeJSAssetsManager from '../ThreeJSAssetsManager.js'
@@ -41,6 +42,8 @@ export default class Resources extends EventEmitter {
     
     this.loaders.textureLoader = new TextureLoader();
     this.loaders.cubeTextureLoader = new CubeTextureLoader();
+    this.loaders.rgbeLoader = new RGBELoader();
+
   }
 
   startLoading() {
@@ -84,6 +87,20 @@ export default class Resources extends EventEmitter {
         this.loaders.cubeTextureLoader.load(source.path, (file) => {
           this.sourceLoaded(source, file);
         });
+      } else if (source.type === 'rgbeLoader') {
+        console.log('尝试加载环境贴图文件路径:', source.file.path);
+
+        this.loaders.rgbeLoader.load(source.file.path, (texture) => {
+          texture.mapping = EquirectangularReflectionMapping;
+          this.sourceLoaded(source, texture);
+          console.log('environment环境贴图加载完成:', source.name, texture);
+        },
+          undefined,
+          (error) => {
+            console.error('环境贴图加载失败:', error);
+          }
+        );
+
       }
     }
   }

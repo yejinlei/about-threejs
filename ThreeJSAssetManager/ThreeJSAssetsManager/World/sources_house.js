@@ -1,6 +1,14 @@
 export default 
 [
     {
+        name: 'environment',
+        type: 'rgbeLoader', 
+        file: { 
+            name: 'environment', 
+            path: 'ThreeJSAssetsManager/textures/envmap.hdr'
+        }
+    },
+    {
             name: '4F',
             type: 'glbModel',     
             file:    

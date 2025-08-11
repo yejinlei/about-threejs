@@ -50,7 +50,7 @@ export default {
         }, 
         // 新增矩形区域光源配置
         rectAreaLight: {
-            enabled: true, // 默认禁用
+            enabled: false, // 默认禁用
             color: 0x00ff7b, // 光源颜色（白色）
             intensity: 1.0, // 光照强度
             width: 5.1, // 光源宽度

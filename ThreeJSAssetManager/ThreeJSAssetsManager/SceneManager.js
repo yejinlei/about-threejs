@@ -13,6 +13,7 @@ export default class SceneManager {
    */
   constructor(cavas, options = {}) {
     this.threejsassetsmanagerInstance = new threeJSAssetsManager();
+    this.resources = this.threejsassetsmanagerInstance.resources;
     this.debug = this.threejsassetsmanagerInstance.debug;
     this.gui = this.threejsassetsmanagerInstance.gui;
   
@@ -25,6 +26,19 @@ export default class SceneManager {
     // GLB根部节点，便于添加glb模型场景到主场景组
     this.mainGroup.name = 'GLBMainGroup';
     this.scene.add(this.mainGroup);
+
+    this.resources.on('ready', () => {
+      // 遍历所有资源
+      this.resources.sources.forEach(object =>
+      {
+          if(object.type === "rgbeLoader" && object.name === "environment"){
+            this.scene.background = this.resources.items['environment'];
+            this.scene.environment = this.resources.items['environment'];
+          }
+      })
+  });
+
+
     this.confScene();
     this.confGUI();
     this.modelVisibility = {}; // 模型可见性状态
