@@ -48,7 +48,6 @@ export default class MeshManager
         });
         // 从管理器实例中获取场景中的 GLBMainGroup 对象
         this.glbmaingroup = this.scene.children.find(object => object.name ===  'GLBMainGroup');
-        console.log(this.scene);
 
         // 如果处于调试模式且 GUI 对象存在
         if(this.debug && this.gui)
@@ -57,66 +56,58 @@ export default class MeshManager
             this.gui.meshFolder = this.gui.addFolder('MeshManager(网格管理)');
 
             // 添加测试功能的文件夹
-            const searchFilterFolder = this.gui.meshFolder.addFolder('功能:查找和过滤');
+            const MeshOperatorFolder = this.gui.meshFolder.addFolder('测试功能');
+
+            // 添加控制所有 GLB 模型可见性的控件
+            const glbAllVisibilityFolder = MeshOperatorFolder.addFolder('控制所有GLB模型可见性');
+            const glbVisibilityParams = {
+                show: true,
+                setVisibility: () => {
+                    this.setAllGlbVisibility(glbVisibilityParams.show);
+                }
+            };
+            glbAllVisibilityFolder.add(glbVisibilityParams, 'show').name('显示所有GLB模型');
+            glbAllVisibilityFolder.add(glbVisibilityParams, 'setVisibility').name('应用设置');
 
             // 添加获取 glb 模型树的控件
-            const glbModelTreeFolder = searchFilterFolder.addFolder('获取 GLB 模型树');
-            const glbModelTreeParams = {
+            const glbSingleVisibilityFolder = MeshOperatorFolder.addFolder('控制单独GLB模型树:');
+            const glbSingleVisibilityParams = {
                 glbName: '',
-                getTree: () => {
-                    // 确保 this 指向 MeshManager 实例
-                    const tree = this.getGlbModelTree(glbModelTreeParams.glbName);
-                    if (tree) {
-                        console.log('GLB 模型树:', tree);
-                    } else {
-                        console.log('未找到对应的 GLB 模型树');
-                    }
+                show: true,
+                setVisibility: () => {
+                    console.log('glbSingleVisibilityParams:', glbSingleVisibilityParams);
+                    this.setSingleGlbVisibility(glbSingleVisibilityParams.glbName, glbSingleVisibilityParams.show);
                 }
             };
-            glbModelTreeFolder.add(glbModelTreeParams, 'glbName').name('GLB 名称');
-            glbModelTreeFolder.add(glbModelTreeParams, 'getTree').name('获取模型树');
-
-            // 添加获取 glb 中 mesh 集合的控件
-            const glbMeshesFolder = searchFilterFolder.addFolder('获取 GLB 中的 Mesh 集合');
-            const glbMeshesParams = {
-                glbName: '',
-                meshName: '',
-                isRegex: false,
-                showOnly: false,
-                getMeshes: () => {
-                    const meshes = this.getMeshesInGlb(glbMeshesParams.glbName, glbMeshesParams.meshName, glbMeshesParams.isRegex, glbMeshesParams.showOnly);
-                    if (meshes.length > 0) {
-                        console.log('GLB 中的 Mesh 集合:', meshes);
-                    } else {
-                        console.log('未找到对应的 Mesh 集合');
-                    }
-                }
-            };
-            glbMeshesFolder.add(glbMeshesParams, 'glbName').name('GLB 名称');
-            glbMeshesFolder.add(glbMeshesParams, 'meshName').name('Mesh 名称');
-            glbMeshesFolder.add(glbMeshesParams, 'isRegex').name('使用正则匹配');
-            glbMeshesFolder.add(glbMeshesParams, 'showOnly').name('只显示找到的 Mesh');
-            glbMeshesFolder.add(glbMeshesParams, 'getMeshes').name('获取 Mesh 集合');
+            glbSingleVisibilityFolder.add(glbSingleVisibilityParams, 'glbName').name('GLB名称');
+            glbSingleVisibilityFolder.add(glbSingleVisibilityParams, 'show').name('显示模型');
+            glbSingleVisibilityFolder.add(glbSingleVisibilityParams, 'setVisibility').name('应用设置');
 
             // 添加获取场景中 mesh 集合的控件
-            const sceneMeshesFolder = searchFilterFolder.addFolder('获取场景中的 Mesh 集合');
+            const sceneMeshesFolder = MeshOperatorFolder.addFolder('获取SCENE中的Mesh集合');
+
             const sceneMeshesParams = {
                 meshName: '',
                 isRegex: false,
-                showOnly: false,
+                show: false,
+                filter: 'include',
                 getMeshes: () => {
-                    const meshes = this.getMeshesInScene(sceneMeshesParams.meshName, sceneMeshesParams.isRegex, sceneMeshesParams.showOnly);
-                    if (meshes.length > 0) {
-                        console.log('场景中的 Mesh 集合:', meshes);
-                    } else {
-                        console.log('未找到对应的 Mesh 集合');
-                    }
+                    const meshes = this.getMeshesInScene(sceneMeshesParams.meshName, sceneMeshesParams.isRegex, sceneMeshesParams.filter);
+                    meshes.forEach(mesh => { mesh.visible = show })
                 }
             };
-            sceneMeshesFolder.add(sceneMeshesParams, 'meshName').name('Mesh 名称');
-            sceneMeshesFolder.add(sceneMeshesParams, 'isRegex').name('使用正则匹配');
-            sceneMeshesFolder.add(sceneMeshesParams, 'showOnly').name('只显示找到的 Mesh');
-            sceneMeshesFolder.add(sceneMeshesParams, 'getMeshes').name('获取 Mesh 集合');
+            sceneMeshesFolder.add(sceneMeshesParams, 'meshName').name('Mesh 名称').onChange((value) => {
+                sceneMeshesParams.meshName = value;
+            });
+            sceneMeshesFolder.add(sceneMeshesParams, 'isRegex').name('使用正则匹配').onChange((value) => {
+                sceneMeshesParams.isRegex = value;
+            });
+            sceneMeshesFolder.add(sceneMeshesParams, 'show').name('显示Mesh').onChange((value) => {
+                sceneMeshesParams.show = value;
+            });
+            sceneMeshesFolder.add(sceneMeshesParams, 'getMeshes').name('应用设置').onChange((value) => {
+                sceneMeshesParams.getMeshes();
+            });
         }
         
         // 测试用代码，创建一个立方体并添加到场景中
@@ -173,63 +164,165 @@ export default class MeshManager
         // this.scene.add(icosahedron);
     }
 
+
+    /**
+     * 获取场景中 GLB 主组对象。
+     * 该方法会检查 GLB 主组对象是否存在子对象，
+     * 若存在则返回该 GLB 主组对象，否则返回 null。
+     * @returns {Object|null} - 若 GLB 主组对象存在子对象，返回该对象；否则返回 null。
+     */
+    getGlbList() { 
+        // 检查 GLB 主组对象是否存在且包含子对象
+        if (this.glbmaingroup && this.glbmaingroup.children.length > 0){
+            // 若存在子对象，返回 GLB 主组对象
+            return this.glbmaingroup;
+        } else {
+            // 若不存在子对象，返回 null
+            return null;
+        }
+    }
+
+    /**
+     * 设置场景中所有 GLB 模型的可见性。
+     * 该方法会获取 GLB 主组对象，若对象存在，则遍历其所有子网格对象，
+     * 根据传入的参数设置这些网格对象的可见性。
+     * @param {boolean} show - 控制网格对象可见性的布尔值，true 为显示，false 为隐藏。
+     */
+    setAllGlbVisibility(show) {
+        // 调用 getAllGlbModelTree 方法获取 GLB 主组对象
+        const glbList = this.getGlbList();
+        // 检查 GLB 主组对象是否存在
+        if (glbList) {
+            // 遍历 GLB 主组对象的所有子对象
+            glbList.traverse((child) => {
+                // 检查子对象是否为网格对象
+                if (child.isMesh) {
+                    // 根据传入的 show 参数设置网格对象的可见性
+                    child.visible = show;
+                }
+            });
+        }
+    }
+
+
     /**
      * 通过传入 glb 名，返回整个 glb 的模型树。
      * @param {string} glbName - glb 模型的名称。
      * @returns {Object|null} - glb 模型树，如果未找到则返回 null。
      */
-    getGlbModelTree(glbName, showOnly = false) {
-        const glbResource = this.resources.items[glbName];
-        if (glbResource && glbResource.scene) {
-            return glbResource.scene;
+    /**
+     * 通过传入 glb 名和过滤类型，返回对应的 glb 模型树。
+     * @param {string} glbName - glb 模型的名称。
+     * @param {string} [filter='include'] - 过滤类型，'include' 表示包含指定名称的模型，'exclude' 表示排除指定名称的模型。
+     * @returns {Object|Array<Object>|null} - 符合条件的 glb 模型树或模型树数组，如果未找到则返回 null。
+     */
+    getSingleGlbFromScene(glbName) {
+        if (!this.glbmaingroup) {
+            return null;
         }
-        return null;
+
+        const glbs = this.glbmaingroup.children.filter(child => child.name === glbName)
+        if (!glbs.length) {
+            return null;
+        } else {
+            return glbs[0];
+        }
     }
 
     /**
-     * 通过传入 glb 名和 mesh 名，正则、完全匹配，返回这个 glb 中找到的 mesh 集合。
+     * 设置指定 GLB 模型的可见性。
+     * 该方法会先隐藏所有 GLB 模型的网格，然后根据传入的 glbName 和 filter 找到对应的模型树，
+     * 并根据 show 参数设置该模型树中所有网格的可见性。
+     * @param {string} glbName - 要设置可见性的 GLB 模型的名称。
+     * @param {boolean} show - 控制网格对象可见性的布尔值，true 为显示，false 为隐藏。
+     * @param {string} [filter='include'] - 过滤类型，'include' 表示包含指定名称的模型，'exclude' 表示排除指定名称的模型。
+     * @returns {Object|Array<Object>|null} - 找到的 GLB 模型树或模型树数组，如果未找到则返回 null。
+     */
+    setSingleGlbVisibility(glbName, show) {
+        const singleglb = this.getSingleGlbFromScene(glbName);
+
+        if (singleglb) {
+            
+            singleglb.traverse((child) => {
+                if (child.isMesh) {
+                    child.visible = false;
+                }
+            });
+
+            singleglb.traverse((child) => {
+                    if (child.isMesh) {
+                        child.visible = show;
+                    }
+                });
+            };
+    }
+
+
+
+    /**
+     * 通过传入 glb 名和 mesh 名，正则、完全匹配，返回这些 glb 中找到的 mesh 集合。
      * @param {string} glbName - glb 模型的名称。
      * @param {string} meshName - 要查找的 mesh 名称，可以是正则表达式或完全匹配的字符串。
      * @param {boolean} [isRegex=false] - 是否使用正则表达式匹配，默认为 false。
      * @param {boolean} [showOnly=false] - 如果为 true，则只显示找到的 mesh，隐藏其他 mesh。默认为 false。
+     * @param {string} [filter='include'] - 过滤类型，'include' 表示包含指定名称的模型，'exclude' 表示排除指定名称的模型。
      * @returns {Array<Mesh>} - 找到的 mesh 集合。
      */
-    getMeshesInGlb(glbName, meshName, isRegex = false, showOnly = false) {
-        const glbModel = this.getGlbModelTree(glbName);
-        const meshes = [];
-
-        if (glbModel) {
-            if (showOnly) {
-                // 先隐藏 glb 模型中的所有 mesh
-                glbModel.traverse((child) => {
+    getMeshesInGlbs(glbName, meshName, isRegex = false, showOnly = false, filter = 'include') {
+        const meshes = []; // 初始化 meshes 数组
+        const glb = this.getSingleGlbFromScene(glbName); // 修正 filter 参数传递方式
+        if (glb) {
+            treesToProcess.forEach((tree) => { // 遍历 glb 模型树
+                tree.traverse((child) => {
                     if (child.isMesh) {
-                        child.visible = false;
+                        if (isRegex) {
+                            const regex = new RegExp(meshName);
+                            if (regex.test(child.name)) {
+                                meshes.push(child);
+
+                                if(filter === 'include'){
+                                    if (meshes.some(mesh => mesh.name === child.name)) {
+                                        child.visible = true;
+                                    }
+                                } else if (filter === 'exclude') {
+                                    if (!meshes.some(mesh => mesh.name === child.name)) {
+                                        child.visible = true;
+                                    }
+                                } else {
+                                    console.error('Invalid filter type. Expected "include" or "exclude".');
+                                } 
+                            }
+                        } else if (child.name === meshName) {
+                            meshes.push(child);
+
+                            if(filter === 'include'){
+                                if (meshes.some(mesh => mesh.name === child.name)) {
+                                    child.visible = true;
+                                }
+                            } else if (filter === 'exclude'){
+                                if (!meshes.some(mesh => mesh.name === child.name)) {
+                                    child.visible = true;
+                                }
+                            } else {
+                                console.error('Invalid filter type. Expected "include" or "exclude".');
+                            } 
+                        }
                     }
                 });
-            }
+            });
+        }
 
-            glbModel.traverse((child) => {
+        if (showOnly) {
+            this.glbmaingroup.traverse((child) => {
                 if (child.isMesh) {
-                    if (isRegex) {
-                        const regex = new RegExp(meshName);
-                        if (regex.test(child.name)) {
-                            meshes.push(child);
-                            if (showOnly) {
-                                child.visible = true;
-                            }
-                        }
-                    } else if (child.name === meshName) {
-                        meshes.push(child);
-                        if (showOnly) {
-                            child.visible = true;
-                        }
-                    }
+                    child.visible = meshes.includes(child);
                 }
             });
         }
 
         return meshes;
     }
+
 
     /**
      * 通过传入 mesh 名，正则、完全匹配，返回整个场景中找到的 mesh 集合。
@@ -238,33 +331,39 @@ export default class MeshManager
      * @param {boolean} [showOnly=false] - 如果为 true，则只显示找到的 mesh，隐藏其他 mesh。默认为 false。
      * @returns {Array<Mesh>} - 找到的 mesh 集合。
      */
-    getMeshesInScene(meshName, isRegex = false, showOnly = false) {
+    getMeshesInScene(meshName, isRegex = false, filter = 'include') {
         const meshes = [];
-
-        if (showOnly) {
-            // 先隐藏场景中的所有 mesh
-            this.glbmaingroup.traverse((child) => {
-                if (child.isMesh) {
-                    child.visible = false;
-                }
-            });
-        }
 
         this.glbmaingroup.traverse((child) => {
             if (child.isMesh) {
                 if (isRegex) {
                     const regex = new RegExp(meshName);
                     if (regex.test(child.name)) {
-                        meshes.push(child);
-                        if (showOnly) {
-                            child.visible = true;
-                        }
+                        if(filter === 'include'){
+                            if (child.name === meshName) {
+                                meshes.push(child);
+                            }
+                        } else if (filter === 'exclude') {
+                            if (child.name !== meshName) {
+                                meshes.push(child);
+                            }
+                        } else {
+                            console.error('Invalid filter type. Expected "include" or "exclude".');
+                        } 
                     }
                 } else if (child.name === meshName) {
-                    meshes.push(child);
-                    if (showOnly) {
-                        child.visible = true;
-                    }
+                    if(filter === 'include'){
+                        if (child.name === meshName) {
+                            meshes.push(child);
+                        }
+                    } else if (filter === 'exclude') {
+                        if (child.name !== meshName) {
+                            meshes.push(child);
+                        }
+                    } else {
+                        console.error('Invalid filter type. Expected "include" or "exclude".');
+                    } 
+                } else {
                 }
             }
         });

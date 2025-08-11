@@ -33,6 +33,8 @@ export default class Horse {
 
     // Setup - 直接使用resources.Horse获取模型
     this.gltf = this.resources.items[name];
+    // Scene的名字也改为模型名称
+    this.gltf.scene.name = name;
     
     // Only set model if gltf is loaded and has scene
     if(this.gltf && this.gltf.scene) {
